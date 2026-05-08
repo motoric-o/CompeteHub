@@ -2,11 +2,18 @@
 
 use App\Http\Controllers\TeamController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BroadcastController;
 
 Route::get('/', function () {
     // Mock login for testing to bypass auth middleware
     auth()->loginUsingId(5); // 5 = Budi Santoso (Participant)
     return redirect()->route('teams.index');
+});
+
+// Route untuk Broadcast Email (F-06)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/broadcast', [BroadcastController::class, 'create'])->name('broadcast.create');
+    Route::post('/broadcast', [BroadcastController::class, 'store'])->name('broadcast.store');
 });
 
 // ── F-07: Manajemen Tim ────────────────────────────────────
