@@ -45,10 +45,16 @@ class Competition extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 
-    /**
-     * Semua tim yang terdaftar di kompetisi ini.
-     */
+    public function rounds(): HasMany
+    {
+        return $this->hasMany(Round::class);
+    }
+
     public function teams(): HasMany
     {
         return $this->hasMany(Team::class);
@@ -92,5 +98,28 @@ class Competition extends Model
         }
 
         return $this->teams()->count() < $this->quota;
+    public function registrations(): HasMany
+    {
+        return $this->hasMany(Registration::class);
+    }
+
+    public function formTemplates(): HasMany
+    {
+        return $this->hasMany(FormTemplate::class);
+    }
+
+    public function juryAssignments(): HasMany
+    {
+        return $this->hasMany(JuryAssignment::class);
+    }
+
+    public function submissions(): HasMany
+    {
+        return $this->hasMany(Submission::class);
+    }
+
+    public function leaderboardEntries(): HasMany
+    {
+        return $this->hasMany(LeaderboardEntry::class);
     }
 }

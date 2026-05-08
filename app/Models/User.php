@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+#[Fillable(['name', 'email', 'password', 'role', 'status'])]
+#[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -28,6 +30,15 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($model) {
+            if (empty($model->uuid)) {
+                $model->uuid = (string) \Illuminate\Support\Str::uuid();
+            }
+        });
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -69,6 +80,26 @@ class User extends Authenticatable
         return $this->hasMany(Competition::class, 'user_id');
     }
 
+    public function registrations(): HasMany
+    {
+        return $this->hasMany(Registration::class);
+    }
+
+    public function juryAssignments(): HasMany
+    {
+        return $this->hasMany(JuryAssignment::class);
+    }
+
+    public function scores(): HasMany
+    {
+        return $this->hasMany(Score::class);
+    }
+
+    public function submissions(): HasMany
+    {
+        return $this->hasMany(Submission::class);
+    }
+
     // ── Role Helpers ───────────────────────────────────────
 
     public function isCommittee(): bool
@@ -90,4 +121,5 @@ class User extends Authenticatable
     {
         return $this->status === 'active';
     }
+
 }
