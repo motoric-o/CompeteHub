@@ -9,6 +9,7 @@ use App\Http\Controllers\Participant\RegistrationController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BroadcastController;
+use App\Http\Controllers\Participant\SubmissionController;
 
 Route::get('/', function () {
     // Mock login for testing to bypass auth middleware
@@ -88,6 +89,11 @@ Route::middleware(['auth', 'verified', 'role:participant'])->prefix('participant
     Route::get('/competitions/{competition}/register', [RegistrationController::class, 'create'])->name('registrations.create');
     Route::post('/competitions/{competition}/register', [RegistrationController::class, 'store'])->name('registrations.store');
     Route::get('/competitions/{competition}/registrations/{registration}', [RegistrationController::class, 'show'])->name('registrations.show');
+
+    // Submissions
+    Route::get('/competitions/{competition}/submissions', [SubmissionController::class, 'index'])->name('submissions.index');
+    Route::get('/competitions/{competition}/rounds/{round}/submit', [SubmissionController::class, 'create'])->name('submissions.create');
+    Route::post('/competitions/{competition}/rounds/{round}/submit', [SubmissionController::class, 'store'])->name('submissions.store');
 });
 
 

@@ -63,6 +63,17 @@
                             Status: <span class="font-semibold">{{ ucfirst(str_replace('_', ' ', $registration->payment->status)) }}</span>
                         </p>
                     @endif
+
+                    {{-- Actions --}}
+                    @if(in_array($registration->status, ['verified', 'payment_ok']))
+                        <div class="mt-8 pt-6 border-t border-gray-200">
+                            <h4 class="font-semibold text-gray-700 mb-4">Competition Submissions</h4>
+                            <p class="text-sm text-gray-600 mb-4">Your registration is verified. You can now access the competition rounds and upload your submissions.</p>
+                            <a href="{{ route('participant.submissions.index', $competition) }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150">
+                                View Submissions
+                            </a>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
