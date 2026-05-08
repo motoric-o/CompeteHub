@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Committee\FormTemplateController;
+use App\Http\Controllers\Committee\RegistrationVerificationController;
 use App\Http\Controllers\Participant\RegistrationController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -37,6 +38,18 @@ Route::middleware(['auth', 'verified', 'role:committee'])->prefix('committee')->
          ->names('form-templates');
     Route::get('/form-templates/{template}/fields', [FormTemplateController::class, 'getFields'])
          ->name('form-templates.fields');
+
+    // F-10: Registration Verification (CoR)
+    Route::get('/competitions/{competition}/registrations', [RegistrationVerificationController::class, 'index'])
+         ->name('registrations.index');
+    Route::get('/competitions/{competition}/registrations/{registration}', [RegistrationVerificationController::class, 'show'])
+         ->name('registrations.show');
+    Route::post('/competitions/{competition}/registrations/{registration}/validate', [RegistrationVerificationController::class, 'validate'])
+         ->name('registrations.validate');
+    Route::patch('/documents/{document}/verify', [RegistrationVerificationController::class, 'verifyDocument'])
+         ->name('documents.verify');
+    Route::patch('/payments/{payment}/verify', [RegistrationVerificationController::class, 'verifyPayment'])
+         ->name('payments.verify');
 });
 
 /*
