@@ -93,6 +93,7 @@ class Team extends Model
         } while (self::where('invite_code', $code)->exists());
 
         return $code;
+    }
     public function registrations(): HasMany
     {
         return $this->hasMany(Registration::class);
