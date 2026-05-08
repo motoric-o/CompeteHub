@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Committee\FormTemplateController;
+use App\Http\Controllers\Participant\RegistrationController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -28,6 +30,13 @@ Route::get('/dashboard', function () {
 */
 Route::middleware(['auth', 'verified', 'role:committee'])->prefix('committee')->name('committee.')->group(function () {
     Route::get('/dashboard', fn () => view('committee.dashboard'))->name('dashboard');
+
+    // F-02: Form Template CRUD
+    Route::resource('competitions.form-templates', FormTemplateController::class)
+         ->except(['show'])
+         ->names('form-templates');
+    Route::get('/form-templates/{template}/fields', [FormTemplateController::class, 'getFields'])
+         ->name('form-templates.fields');
 });
 
 /*
@@ -46,6 +55,12 @@ Route::middleware(['auth', 'verified', 'role:judge'])->prefix('judge')->name('ju
 */
 Route::middleware(['auth', 'verified', 'role:participant'])->prefix('participant')->name('participant.')->group(function () {
     Route::get('/dashboard', fn () => view('participant.dashboard'))->name('dashboard');
+
+    // F-02: Registration
+    Route::get('/registrations', [RegistrationController::class, 'index'])->name('registrations.index');
+    Route::get('/competitions/{competition}/register', [RegistrationController::class, 'create'])->name('registrations.create');
+    Route::post('/competitions/{competition}/register', [RegistrationController::class, 'store'])->name('registrations.store');
+    Route::get('/competitions/{competition}/registrations/{registration}', [RegistrationController::class, 'show'])->name('registrations.show');
 });
 
 /*
