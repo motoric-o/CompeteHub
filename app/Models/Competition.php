@@ -60,19 +60,6 @@ class Competition extends Model
         return $this->hasMany(Team::class);
     }
 
-    /**
-     * Babak-babak dalam kompetisi ini.
-     */
-    public function rounds(): HasMany
-    {
-        return $this->hasMany(Round::class);
-    }
-
-    // ── Helper Methods ─────────────────────────────────────
-
-    /**
-     * Apakah kompetisi ini bertipe tim?
-     */
     public function isTeamBased(): bool
     {
         return $this->type === 'team';
@@ -98,6 +85,7 @@ class Competition extends Model
         }
 
         return $this->teams()->count() < $this->quota;
+    }
     public function registrations(): HasMany
     {
         return $this->hasMany(Registration::class);
