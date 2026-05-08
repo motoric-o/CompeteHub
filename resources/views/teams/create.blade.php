@@ -6,10 +6,10 @@
 @section('content')
 <div class="page-header">
     <div>
-        <h1 class="page-title">➕ Buat Tim Baru</h1>
+        <h1 class="page-title">Buat Tim Baru</h1>
         <p class="page-subtitle">Buat tim dan undang anggota untuk mengikuti kompetisi</p>
     </div>
-    <a href="{{ route('teams.index') }}" class="btn btn-secondary">← Kembali</a>
+    <a href="{{ route('teams.index') }}" class="btn btn-secondary">Kembali</a>
 </div>
 
 <div class="card animate-in" style="max-width: 600px;">
@@ -17,7 +17,7 @@
         @csrf
 
         <div class="form-group">
-            <label for="competition_id" class="form-label">🏅 Kompetisi</label>
+            <label for="competition_id" class="form-label">Kompetisi</label>
             <select name="competition_id" id="competition_id" class="form-control" required>
                 <option value="">-- Pilih kompetisi --</option>
                 @foreach($competitions as $comp)
@@ -33,7 +33,7 @@
         </div>
 
         <div class="form-group">
-            <label for="name" class="form-label">📝 Nama Tim</label>
+            <label for="name" class="form-label">Nama Tim</label>
             <input
                 type="text"
                 name="name"
@@ -50,20 +50,21 @@
 
         <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
             <button type="submit" class="btn btn-primary" id="btn-submit-team">
-                🚀 Buat Tim
+                Buat Tim
             </button>
             <a href="{{ route('teams.index') }}" class="btn btn-secondary">Batal</a>
         </div>
     </form>
 </div>
 
-<div class="card animate-in mt-2" style="max-width: 600px; border-color: var(--color-secondary); border-style: dashed;">
-    <h3 class="card-title" style="margin-bottom: 0.75rem;">💡 Informasi</h3>
-    <ul style="color: var(--color-text-muted); font-size: 0.875rem; list-style: none; display: flex; flex-direction: column; gap: 0.5rem;">
-        <li>✓ Kode undangan 8 karakter akan di-generate secara otomatis</li>
-        <li>✓ Anda otomatis menjadi <strong>kapten tim</strong></li>
-        <li>✓ Bagikan kode undangan ke anggota tim untuk bergabung</li>
-        <li>✓ Kapten bisa mengeluarkan anggota kapan saja</li>
-    </ul>
+<div class="mt-2" style="max-width: 600px;">
+    <x-alert type="info" title="Informasi">
+        <ul style="font-size: 0.875rem; list-style: none; display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
+            <li>• Kode undangan 8 karakter akan di-generate secara otomatis</li>
+            <li>• Anda otomatis menjadi <strong>kapten tim</strong></li>
+            <li>• Bagikan kode undangan ke anggota tim untuk bergabung</li>
+            <li>• Kapten bisa mengeluarkan anggota kapan saja</li>
+        </ul>
+    </x-alert>
 </div>
 @endsection

@@ -96,6 +96,34 @@ class NotificationFacade
         );
     }
 
+    /**
+     * Broadcast email manual ke semua peserta dalam kompetisi tertentu (Dadakan).
+     */
+    public function broadcastToParticipants(int $competitionId, string $subject, string $body): void
+    {
+        $competition = Competition::with('teams.members')->findOrFail($competitionId);
+        
+        // Ambil semua member dari semua tim yang terdaftar di kompetisi ini
+        // (Atau daftar peserta jika individu)
+        $participants = collect();
+        if ($competition->type === 'team') {
+            foreach ($competition->teams as $team) {
+                foreach ($team->members as $member) {
+                    $participants->push($member);
+                }
+            }
+        } else {
+            // Asumsi relasi participants ada untuk individu
+            // $participants = $competition->participants; 
+        }
+
+        $participants = $participants->unique('id');
+
+        foreach ($participants as $user) {
+            $this->mailService->send($user->email, $subject, "Halo {$user->name},<br><br>{$body}");
+        }
+    }
+
     // ── PDF Generation ─────────────────────────────────────
 
     /**

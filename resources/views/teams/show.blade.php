@@ -13,15 +13,15 @@
     <div>
         <h1 class="page-title">{{ $team->name }}</h1>
         <p class="page-subtitle">
-            🏅 {{ $team->competition->name ?? 'N/A' }}
+            {{ $team->competition->name ?? 'N/A' }}
             @if($isCaptain)
-                <span class="badge badge-captain" style="margin-left: 0.5rem;">👑 Kapten</span>
+                <span class="badge badge-captain" style="margin-left: 0.5rem;">Kapten</span>
             @elseif($isMember)
-                <span class="badge badge-primary" style="margin-left: 0.5rem;">👤 Anggota</span>
+                <span class="badge badge-primary" style="margin-left: 0.5rem;">Anggota</span>
             @endif
         </p>
     </div>
-    <a href="{{ route('teams.index') }}" class="btn btn-secondary">← Kembali</a>
+    <a href="{{ route('teams.index') }}" class="btn btn-secondary">Kembali</a>
 </div>
 
 <div class="grid grid-cols-3" style="grid-template-columns: 2fr 1fr;">
@@ -30,7 +30,7 @@
     <div>
         <div class="card animate-in">
             <div class="card-header">
-                <h3 class="card-title">👥 Anggota Tim ({{ $team->members->count() }})</h3>
+                <h3 class="card-title">Anggota Tim ({{ $team->members->count() }})</h3>
             </div>
 
             <div class="table-wrapper">
@@ -57,9 +57,9 @@
                                 <td class="text-muted">{{ $member->email }}</td>
                                 <td>
                                     @if($team->user_id === $member->id)
-                                        <span class="badge badge-captain">👑 Kapten</span>
+                                        <span class="badge badge-captain">Kapten</span>
                                     @else
-                                        <span class="badge badge-primary">👤 Anggota</span>
+                                        <span class="badge badge-primary">Anggota</span>
                                     @endif
                                 </td>
                                 <td class="text-muted" style="font-size: 0.85rem;">
@@ -76,7 +76,7 @@
                                                   style="display: inline;">
                                                 @csrf
                                                 <button type="submit" class="btn btn-danger btn-sm" id="btn-kick-{{ $member->id }}">
-                                                    🚫 Keluarkan
+                                                    Keluarkan
                                                 </button>
                                             </form>
                                         @else
@@ -98,7 +98,7 @@
                       onsubmit="return confirm('Yakin ingin keluar dari tim {{ $team->name }}?')">
                     @csrf
                     <button type="submit" class="btn btn-danger" id="btn-leave-team">
-                        🚪 Keluar dari Tim
+                        Keluar dari Tim
                     </button>
                 </form>
             </div>
@@ -109,14 +109,14 @@
     <div>
         <!-- Kode Undangan -->
         <div class="card animate-in" style="margin-bottom: 1.5rem;">
-            <h3 class="card-title" style="margin-bottom: 1rem;">🔗 Kode Undangan</h3>
+            <h3 class="card-title" style="margin-bottom: 1rem;">Kode Undangan</h3>
             <div class="invite-code-box" style="flex-direction: column; text-align: center;">
                 <div style="font-size: 0.75rem; color: var(--color-text-dim);">BAGIKAN KODE INI</div>
                 <div class="invite-code" id="invite-code-display">{{ $team->invite_code }}</div>
             </div>
 
             <button class="btn btn-secondary btn-sm mt-1" style="width: 100%;" onclick="copyInviteCode()" id="btn-copy-code">
-                📋 Salin Kode
+                Salin Kode
             </button>
 
             @if($isCaptain)
@@ -124,7 +124,7 @@
                       onsubmit="return confirm('Kode undangan lama akan tidak berlaku lagi. Lanjutkan?')">
                     @csrf
                     <button type="submit" class="btn btn-outline btn-sm" style="width: 100%;" id="btn-regenerate-code">
-                        🔄 Generate Kode Baru
+                        Generate Kode Baru
                     </button>
                 </form>
             @endif
@@ -132,7 +132,7 @@
 
         <!-- Info Kompetisi -->
         <div class="card animate-in">
-            <h3 class="card-title" style="margin-bottom: 1rem;">🏅 Detail Kompetisi</h3>
+            <h3 class="card-title" style="margin-bottom: 1rem;">Detail Kompetisi</h3>
             <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.875rem;">
                 <div>
                     <span class="text-muted">Nama:</span><br>
@@ -176,7 +176,7 @@
         navigator.clipboard.writeText(code).then(() => {
             const btn = document.getElementById('btn-copy-code');
             const original = btn.innerHTML;
-            btn.innerHTML = '✅ Tersalin!';
+            btn.innerHTML = 'Tersalin!';
             btn.style.background = 'rgba(16, 185, 129, 0.2)';
             setTimeout(() => {
                 btn.innerHTML = original;

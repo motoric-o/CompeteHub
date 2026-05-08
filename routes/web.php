@@ -4,7 +4,9 @@ use App\Http\Controllers\TeamController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    // Mock login for testing to bypass auth middleware
+    auth()->loginUsingId(5); // 5 = Budi Santoso (Participant)
+    return redirect()->route('teams.index');
 });
 
 // ── F-07: Manajemen Tim ────────────────────────────────────

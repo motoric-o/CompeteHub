@@ -21,12 +21,20 @@ class MailService
      */
     public function send(string $to, string $subject, string $body): bool
     {
-        // Implementasi nyata akan menggunakan Laravel Mail / Mailgun / SendGrid.
-        // Saat ini kita log saja untuk development.
-        Log::info("MailService: Sending email to {$to}", [
-            'subject' => $subject,
-            'body'    => $body,
-        ]);
+        // Implementasi nyata menggunakan Laravel Mail
+        try {
+            \Illuminate\Support\Facades\Mail::to($to)->send(
+                new \App\Mail\EventNotificationMail($subject, $body)
+            );
+            
+            Log::info("MailService: Email sent to {$to}", [
+                'subject' => $subject,
+            ]);
+            return true;
+        } catch (\Exception $e) {
+            Log::error("MailService: Failed to send email to {$to}. Error: {$e->getMessage()}");
+            return false;
+        }
 
         return true;
     }

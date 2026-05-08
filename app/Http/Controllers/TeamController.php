@@ -63,7 +63,8 @@ class TeamController extends Controller
     {
         $competitions = Competition::where('type', 'team')
             ->where('status', 'open')
-            ->get();
+            ->get()
+            ->filter(fn($comp) => $comp->isRegistrationOpen());
 
         $selectedCompetitionId = $request->query('competition_id');
 
