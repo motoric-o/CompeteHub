@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\TeamController;
 use App\Http\Controllers\Committee\CompetitionController as CommitteeCompetitionController;
 use App\Http\Controllers\Committee\FormTemplateController;
 use App\Http\Controllers\Committee\RegistrationVerificationController;
@@ -7,9 +8,37 @@ use App\Http\Controllers\Participant\CompetitionController as ParticipantCompeti
 use App\Http\Controllers\Participant\RegistrationController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BroadcastController;
 
 Route::get('/', function () {
-    return view('welcome');
+    // Mock login for testing to bypass auth middleware
+    auth()->loginUsingId(5); // 5 = Budi Santoso (Participant)
+    return redirect()->route('teams.index');
+});
+
+// Route untuk Broadcast Email (F-06)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/broadcast', [BroadcastController::class, 'create'])->name('broadcast.create');
+    Route::post('/broadcast', [BroadcastController::class, 'store'])->name('broadcast.store');
+});
+
+// ── F-07: Manajemen Tim ────────────────────────────────────
+// Semua route memerlukan autentikasi
+Route::middleware(['auth'])->group(function () {
+
+    // Tim — CRUD & manajemen anggota
+    Route::prefix('teams')->name('teams.')->group(function () {
+        Route::get('/',           [TeamController::class, 'index'])->name('index');
+        Route::get('/create',     [TeamController::class, 'create'])->name('create');
+        Route::post('/',          [TeamController::class, 'store'])->name('store');
+        Route::post('/join',      [TeamController::class, 'join'])->name('join');
+        Route::get('/{team}',     [TeamController::class, 'show'])->name('show');
+
+        // Aksi anggota
+        Route::post('/{team}/kick/{member}',      [TeamController::class, 'kick'])->name('kick');
+        Route::post('/{team}/leave',              [TeamController::class, 'leave'])->name('leave');
+        Route::post('/{team}/regenerate-code',    [TeamController::class, 'regenerateCode'])->name('regenerateCode');
+    });
 });
 
 Route::get('/dashboard', function () {

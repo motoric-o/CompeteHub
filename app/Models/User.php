@@ -2,11 +2,9 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -18,6 +16,20 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    protected $fillable = [
+        'uuid',
+        'name',
+        'email',
+        'password',
+        'role',
+        'status',
+        'avatar_url',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
     protected static function boot()
     {
         parent::boot();
@@ -41,33 +53,31 @@ class User extends Authenticatable
         ];
     }
 
-    /* ─── Role helpers ─── */
+    // ── Relationships ──────────────────────────────────────
 
-    public function isCommittee(): bool
+    /**
+     * Tim-tim yang dikaptenin oleh user ini.
+     */
+    public function captainedTeams(): HasMany
     {
-        return $this->role === 'committee';
+        return $this->hasMany(Team::class, 'user_id');
     }
 
-    public function isJudge(): bool
+    /**
+     * Tim-tim yang diikuti user ini (sebagai anggota).
+     */
+    public function teams(): BelongsToMany
     {
-        return $this->role === 'judge';
+        return $this->belongsToMany(Team::class, 'team_members')
+                    ->withPivot('joined_at');
     }
 
-    public function isParticipant(): bool
-    {
-        return $this->role === 'participant';
-    }
-
-    /* ─── Relationships ─── */
-
+    /**
+     * Kompetisi yang dibuat user ini (sebagai panitia).
+     */
     public function competitions(): HasMany
     {
-        return $this->hasMany(Competition::class);
-    }
-
-    public function teams(): HasMany
-    {
-        return $this->hasMany(Team::class);
+        return $this->hasMany(Competition::class, 'user_id');
     }
 
     public function registrations(): HasMany
@@ -89,4 +99,27 @@ class User extends Authenticatable
     {
         return $this->hasMany(Submission::class);
     }
+
+    // ── Role Helpers ───────────────────────────────────────
+
+    public function isCommittee(): bool
+    {
+        return $this->role === 'committee';
+    }
+
+    public function isJudge(): bool
+    {
+        return $this->role === 'judge';
+    }
+
+    public function isParticipant(): bool
+    {
+        return $this->role === 'participant';
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
 }

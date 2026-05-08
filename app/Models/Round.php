@@ -8,7 +8,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Round extends Model
 {
     protected $fillable = [
-        'competition_id', 'name', 'round_order', 'start_date', 'end_date', 'status',
+        'competition_id',
+        'name',
+        'round_order',
+        'start_date',
+        'end_date',
+        'status',
     ];
 
     protected function casts(): array

@@ -9,9 +9,20 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Competition extends Model
 {
     protected $fillable = [
-        'user_id', 'name', 'description', 'type', 'scoring_type',
-        'registration_fee', 'quota', 'banner_url',
-        'start_date', 'end_date', 'registration_start', 'registration_end', 'status',
+        'uuid',
+        'user_id',
+        'name',
+        'description',
+        'type',
+        'scoring_type',
+        'registration_fee',
+        'quota',
+        'banner_url',
+        'start_date',
+        'end_date',
+        'registration_start',
+        'registration_end',
+        'status',
     ];
 
     protected function casts(): array
@@ -25,6 +36,15 @@ class Competition extends Model
         ];
     }
 
+    // ── Relationships ──────────────────────────────────────
+
+    /**
+     * Panitia (committee) yang membuat kompetisi ini.
+     */
+    public function committee(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
@@ -40,6 +60,44 @@ class Competition extends Model
         return $this->hasMany(Team::class);
     }
 
+    /**
+     * Babak-babak dalam kompetisi ini.
+     */
+    public function rounds(): HasMany
+    {
+        return $this->hasMany(Round::class);
+    }
+
+    // ── Helper Methods ─────────────────────────────────────
+
+    /**
+     * Apakah kompetisi ini bertipe tim?
+     */
+    public function isTeamBased(): bool
+    {
+        return $this->type === 'team';
+    }
+
+    /**
+     * Apakah pendaftaran masih dibuka?
+     */
+    public function isRegistrationOpen(): bool
+    {
+        return $this->status === 'open'
+            && $this->registration_start <= now()
+            && $this->registration_end >= now();
+    }
+
+    /**
+     * Apakah kuota masih tersedia?
+     */
+    public function hasAvailableQuota(): bool
+    {
+        if ($this->quota === null) {
+            return true; // unlimited
+        }
+
+        return $this->teams()->count() < $this->quota;
     public function registrations(): HasMany
     {
         return $this->hasMany(Registration::class);

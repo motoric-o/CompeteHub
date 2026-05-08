@@ -9,7 +9,11 @@ class TeamMember extends Model
 {
     public $timestamps = false;
 
-    protected $fillable = ['team_id', 'user_id', 'joined_at'];
+    protected $fillable = [
+        'team_id',
+        'user_id',
+        'joined_at',
+    ];
 
     protected function casts(): array
     {
@@ -17,6 +21,8 @@ class TeamMember extends Model
             'joined_at' => 'datetime',
         ];
     }
+
+    // ── Relationships ──────────────────────────────────────
 
     public function team(): BelongsTo
     {
