@@ -32,6 +32,8 @@ Route::get('/dashboard', function () {
 Route::middleware(['auth', 'verified', 'role:committee'])->prefix('committee')->name('committee.')->group(function () {
     Route::get('/dashboard', fn () => view('committee.dashboard'))->name('dashboard');
 
+    Route::get('/competitions', [\App\Http\Controllers\Committee\CompetitionController::class, 'index'])->name('competitions.index');
+
     // F-02: Form Template CRUD
     Route::resource('competitions.form-templates', FormTemplateController::class)
          ->except(['show'])
@@ -68,6 +70,8 @@ Route::middleware(['auth', 'verified', 'role:judge'])->prefix('judge')->name('ju
 */
 Route::middleware(['auth', 'verified', 'role:participant'])->prefix('participant')->name('participant.')->group(function () {
     Route::get('/dashboard', fn () => view('participant.dashboard'))->name('dashboard');
+
+    Route::get('/competitions', [\App\Http\Controllers\Participant\CompetitionController::class, 'index'])->name('competitions.index');
 
     // F-02: Registration
     Route::get('/registrations', [RegistrationController::class, 'index'])->name('registrations.index');

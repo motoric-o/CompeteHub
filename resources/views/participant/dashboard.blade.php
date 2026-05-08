@@ -20,7 +20,7 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <a href="#" class="group cursor-pointer bg-gradient-to-br from-teal-50 to-white rounded-2xl p-6 border border-teal-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-teal-100 block">
+                        <a href="{{ route('participant.competitions.index') }}" class="group cursor-pointer bg-gradient-to-br from-teal-50 to-white rounded-2xl p-6 border border-teal-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-teal-100 block">
                             <div class="w-12 h-12 bg-teal-100 text-teal-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                             </div>
