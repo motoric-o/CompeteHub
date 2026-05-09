@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Competition extends Model
 {
+    public $incrementing = true;
+
     protected $fillable = [
         'uuid',
         'user_id',
@@ -23,6 +25,8 @@ class Competition extends Model
         'registration_start',
         'registration_end',
         'status',
+        'rules',
+        'settings',
     ];
 
     protected function casts(): array
@@ -33,6 +37,7 @@ class Competition extends Model
             'end_date'         => 'date',
             'registration_start' => 'datetime',
             'registration_end'   => 'datetime',
+            'settings'           => 'array',
         ];
     }
 
@@ -48,6 +53,16 @@ class Competition extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function scoringType(): BelongsTo
+    {
+        return $this->belongsTo(ScoringType::class);
+    }
+
+    public function scoringCriteria(): HasMany
+    {
+        return $this->hasMany(ScoringCriterion::class);
     }
 
     public function rounds(): HasMany

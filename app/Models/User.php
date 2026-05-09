@@ -11,9 +11,7 @@ use Illuminate\Notifications\Notifiable;
 
 #[Fillable(['name', 'email', 'password', 'role', 'status'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable
-{
-    /** @use HasFactory<UserFactory> */
+class User extends Authenticatable {
     use HasFactory, Notifiable;
 
     protected $fillable = [
