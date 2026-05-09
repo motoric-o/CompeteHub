@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Round extends Model
 {
@@ -15,7 +16,7 @@ class Round extends Model
         'status'
     ];
 
-    public function competition()
+    public function competition(): BelongsTo
     {
         return $this->belongsTo(Competition::class);
     }
@@ -28,5 +29,13 @@ class Round extends Model
     public function submissions()
     {
         return $this->hasMany(Submission::class);
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'start_date' => 'datetime',
+            'end_date'   => 'datetime',
+        ];
     }
 }

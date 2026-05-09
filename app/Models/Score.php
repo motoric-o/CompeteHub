@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Score extends Model
 {
     const CREATED_AT = 'scored_at';
-    
+
     protected $fillable = [
         'submission_id',
         'user_id',
@@ -17,17 +19,31 @@ class Score extends Model
         'updated_at'
     ];
 
-    public function submission()
+    protected function casts(): array
+    {
+        return [
+            'score'     => 'decimal:2',
+            'scored_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
+    }
+
+    public function submission(): BelongsTo
     {
         return $this->belongsTo(Submission::class);
     }
 
-    public function user() // jury
+    public function user(): BelongsTo // jury
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function criterionScores()
+    public function judge(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function criterionScores(): HasMany
     {
         return $this->hasMany(CriterionScore::class, 'score_id');
     }
