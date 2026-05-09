@@ -29,7 +29,7 @@ class Round extends Model
     public function submissions()
     {
         return $this->hasMany(Submission::class);
-    ];
+    }
 
     protected function casts(): array
     {
