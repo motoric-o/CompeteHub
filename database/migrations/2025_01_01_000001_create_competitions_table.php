@@ -14,8 +14,10 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->restrictOnDelete(); // committee
             $table->string('name', 200);
             $table->text('description')->nullable();
-            $table->enum('type', ['individual', 'team']);           // Factory Pattern
-            $table->enum('scoring_type', ['time_based', 'judge_score'])->default('judge_score'); // Strategy Pattern
+            $table->longText('rules')->nullable();
+            $table->enum('type', ['individual', 'team']);
+            $table->foreignId('scoring_type_id')->constrained()->restrictOnDelete();
+            $table->decimal('time_scoring_threshold', 10, 2)->nullable();
             $table->decimal('registration_fee', 12, 2)->default(0);
             $table->integer('quota')->nullable();
             $table->text('banner_url')->nullable();
@@ -24,6 +26,7 @@ return new class extends Migration
             $table->timestamp('registration_start')->nullable();
             $table->timestamp('registration_end')->nullable();
             $table->enum('status', ['draft', 'open', 'ongoing', 'finished'])->default('draft');
+            $table->json('settings')->nullable();
             $table->timestamps();
         });
 
