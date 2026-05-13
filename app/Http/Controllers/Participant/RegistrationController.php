@@ -95,6 +95,26 @@ class RegistrationController extends Controller
     }
 
     /**
+     * Download Certificate.
+     */
+    public function downloadCertificate(Competition $competition, Registration $registration, \App\Services\Facade\NotificationFacade $facade)
+    {
+        abort_unless($registration->user_id === auth()->id(), 403);
+        
+        // Asumsi sertifikat hanya bisa diunduh jika status registrasi verified
+        abort_unless(in_array($registration->status, ['verified', 'payment_ok']), 403, 'Registration not verified.');
+
+        $data = [
+            'userName' => auth()->user()->name,
+            'competitionName' => $competition->name,
+        ];
+
+        $path = $facade->generatePDFCertificate(auth()->id(), $competition->id, $data);
+
+        return response()->download(storage_path('app/public/' . $path));
+    }
+
+    /**
      * My registrations list.
      */
     public function index(): View

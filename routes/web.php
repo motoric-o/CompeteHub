@@ -89,6 +89,7 @@ Route::middleware(['auth', 'verified', 'role:participant'])->prefix('participant
     Route::get('/competitions/{competition}/register', [RegistrationController::class, 'create'])->name('registrations.create');
     Route::post('/competitions/{competition}/register', [RegistrationController::class, 'store'])->name('registrations.store');
     Route::get('/competitions/{competition}/registrations/{registration}', [RegistrationController::class, 'show'])->name('registrations.show');
+    Route::get('/competitions/{competition}/registrations/{registration}/certificate', [RegistrationController::class, 'downloadCertificate'])->name('registrations.certificate');
 
     // Submissions
     Route::get('/competitions/{competition}/submissions', [SubmissionController::class, 'index'])->name('submissions.index');
