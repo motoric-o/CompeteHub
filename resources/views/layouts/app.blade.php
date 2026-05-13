@@ -271,6 +271,7 @@
                 <a href="/" class="navbar-brand">CompeteHub</a>
 
                 <ul class="navbar-nav">
+                    <li><a href="{{ route('dashboard') }}" class="{{ request()->routeIs('*.dashboard') ? 'active' : '' }}">Dashboard</a></li>
                     <li><a href="{{ route('teams.index') }}" class="{{ request()->routeIs('teams.*') ? 'active' : '' }}">Tim Saya</a></li>
                     <li><a href="{{ route('broadcast.create') }}" class="{{ request()->routeIs('broadcast.*') ? 'active' : '' }}">Kirim Email</a></li>
                 </ul>
@@ -279,6 +280,13 @@
                 <div class="nav-user">
                     <div class="nav-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</div>
                     <span style="font-size: 0.9rem; font-weight: 500;">{{ auth()->user()->name }}</span>
+                    
+                    <form method="POST" action="{{ route('logout') }}" id="logout-form" style="display: none;">
+                        @csrf
+                    </form>
+                    <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="btn btn-secondary btn-sm" style="padding: 0.4rem 0.75rem; font-size: 0.75rem;">
+                        Keluar
+                    </a>
                 </div>
                 @endauth
             </div>

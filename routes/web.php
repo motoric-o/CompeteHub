@@ -1,5 +1,6 @@
 <?php
 
+
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\Committee\CompetitionController as CommitteeCompetitionController;
 use App\Http\Controllers\Committee\FormTemplateController;
@@ -12,9 +13,7 @@ use App\Http\Controllers\BroadcastController;
 use App\Http\Controllers\Participant\SubmissionController;
 
 Route::get('/', function () {
-    // Mock login for testing to bypass auth middleware
-    auth()->loginUsingId(5); // 5 = Budi Santoso (Participant)
-    return redirect()->route('teams.index');
+    return view('welcome');
 });
 
 // Route untuk Broadcast Email (F-06)
@@ -73,6 +72,11 @@ Route::middleware(['auth', 'verified', 'role:committee'])->prefix('committee')->
         ->name('documents.verify');
     Route::patch('/payments/{payment}/verify', [RegistrationVerificationController::class, 'verifyPayment'])
         ->name('payments.verify');
+
+    Route::resource('management/competitions', CommitteeCompetitionController::class)
+        ->names('management.competitions');
+
+
 });
 
 
