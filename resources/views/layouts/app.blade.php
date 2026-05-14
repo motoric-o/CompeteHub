@@ -276,9 +276,22 @@
                 </ul>
 
                 @auth
-                <div class="nav-user">
-                    <div class="nav-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</div>
-                    <span style="font-size: 0.9rem; font-weight: 500;">{{ auth()->user()->name }}</span>
+                <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                    <button @click="open = !open" class="nav-user focus:outline-none flex items-center gap-2 hover:opacity-80 transition">
+                        <div class="nav-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</div>
+                        <span style="font-size: 0.9rem; font-weight: 500;">{{ auth()->user()->name }}</span>
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    
+                    <div x-show="open" x-transition.opacity style="display: none;" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-100 py-1 z-50">
+                        <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profil</a>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                Logout
+                            </button>
+                        </form>
+                    </div>
                 </div>
                 @endauth
             </div>

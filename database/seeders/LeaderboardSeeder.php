@@ -22,35 +22,47 @@ class LeaderboardSeeder extends Seeder
 
         DB::table('leaderboard_entries')->insert([
             // Hackathon — per round (Penyisihan)
+            // Tim Alpha: 87.50 + 5.00 = 92.50
             [
                 'competition_id' => $hackathon,
                 'round_id'       => $penyisihan,
                 'user_id'        => null,
                 'team_id'        => $teamAlpha,
-                'total_score'    => 87.50,
+                'total_score'    => 92.50,
                 'rank'           => 1,
                 'last_updated'   => now(),
             ],
+            // Tim Beta: 0 + 0 = 0 (belum dinilai juri, revisi 2x)
             [
                 'competition_id' => $hackathon,
                 'round_id'       => $penyisihan,
                 'user_id'        => null,
                 'team_id'        => $teamBeta,
-                'total_score'    => 0.00,        // belum di-score
+                'total_score'    => 0.00,
                 'rank'           => 2,
                 'last_updated'   => now(),
             ],
-            // Hackathon — global (round_id NULL)
+            // Hackathon — global
             [
                 'competition_id' => $hackathon,
                 'round_id'       => null,
                 'user_id'        => null,
                 'team_id'        => $teamAlpha,
-                'total_score'    => 87.50,
+                'total_score'    => 92.50,
                 'rank'           => 1,
                 'last_updated'   => now(),
             ],
+            [
+                'competition_id' => $hackathon,
+                'round_id'       => null,
+                'user_id'        => null,
+                'team_id'        => $teamBeta,
+                'total_score'    => 0.00,
+                'rank'           => 2,
+                'last_updated'   => now(),
+            ],
             // CP — per round (Babak Utama)
+            // Budi: 95.00 + 0 = 95.00
             [
                 'competition_id' => $cp,
                 'round_id'       => $babakUtama,

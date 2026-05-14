@@ -36,7 +36,7 @@
                             <p class="text-sm text-gray-600">{{ __('Track the status of your current competition registrations.') }}</p>
                         </a>
 
-                        <a href="#" class="group cursor-pointer bg-gradient-to-br from-blue-50 to-white rounded-2xl p-6 border border-blue-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-100 block">
+                        <a href="{{ route('leaderboards.list') }}" class="group cursor-pointer bg-gradient-to-br from-blue-50 to-white rounded-2xl p-6 border border-blue-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-100 block">
                             <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
                             </div>
