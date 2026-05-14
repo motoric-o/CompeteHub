@@ -1,75 +1,76 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Create Form Template') }} — {{ $competition->name }}
+            Create Form Template — {{ $competition->name }}
         </h2>
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+            @if($errors->any())
+                <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                    <ul class="list-disc list-inside text-sm">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
-
-                    {{-- Reuse existing template --}}
-                    @if($existingTemplates->count() > 0)
-                        <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                            <h4 class="font-semibold text-blue-700 mb-2">{{ __('Reuse an existing template') }}</h4>
-                            <form method="POST" action="{{ route('committee.form-templates.store', $competition) }}">
-                                @csrf
-                                <div class="flex items-end gap-4">
-                                    <div class="flex-1">
-                                        <x-input-label for="clone_from" :value="__('Select Template')" />
-                                        <select id="clone_from" name="clone_from"
-                                            class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                                            @foreach($existingTemplates as $et)
-                                                <option value="{{ $et->id }}">{{ $et->name }} ({{ $et->competition->name }})</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="flex-1">
-                                        <x-input-label for="clone_name" :value="__('New Name')" />
-                                        <x-text-input id="clone_name" name="name" type="text" class="block mt-1 w-full" placeholder="My cloned template" required />
-                                    </div>
-                                    <input type="hidden" name="fields" value="[]" />
-                                    <x-primary-button>{{ __('Clone') }}</x-primary-button>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="relative my-6">
-                            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-200"></div></div>
-                            <div class="relative flex justify-center text-sm"><span class="px-2 bg-white text-gray-500">or create from scratch</span></div>
-                        </div>
-                    @endif
-
-                    {{-- Create new template with dynamic form builder --}}
-                    <form method="POST" action="{{ route('committee.form-templates.store', $competition) }}" id="templateForm">
+                    <form id="templateForm" method="POST"
+                        action="{{ route('committee.form-templates.store', $competition) }}">
                         @csrf
 
                         <div class="mb-4">
                             <x-input-label for="name" :value="__('Template Name')" />
-                            <x-text-input id="name" name="name" type="text" class="block mt-1 w-full" :value="old('name')" required />
-                            <x-input-error :messages="$errors->get('name')" class="mt-2" />
+                            <x-text-input id="name" name="name" type="text" class="block mt-1 w-full"
+                                value="{{ old('name') }}" required autofocus />
                         </div>
 
-                        <input type="hidden" name="fields" id="fieldsJson" value="[]" />
+                        <div class="mb-6">
+                            <x-input-label for="clone_from" :value="__('Reuse Existing Template')" />
+                            <select id="clone_from" name="clone_from"
+                                class="block mt-1 w-full border-gray-300 rounded-md shadow-sm"
+                                onchange="toggleBuilder()">
+                                <option value="">-- Create new form manually --</option>
+                                @forelse($existingTemplates as $template)
+                                    <option value="{{ $template->id }}" {{ old('clone_from') == $template->id ? 'selected' : '' }}>
+                                        {{ $template->name }} — {{ $template->competition?->name }}
+                                    </option>
+                                @empty
+                                    <option value="" disabled>No reusable template available</option>
+                                @endforelse
+                            </select>
 
-                        {{-- Dynamic field builder --}}
-                        <div class="mb-4">
-                            <label class="block font-medium text-sm text-gray-700 mb-2">{{ __('Form Fields') }}</label>
+                            <p class="text-xs text-gray-500 mt-1">
+                                Pilih template lama kalau ingin menggunakan ulang field yang sudah pernah dibuat.
+                            </p>
+                        </div>
 
-                            <div id="fieldsList" class="space-y-3"></div>
+                        <div id="manualBuilder">
+                            <h3 class="font-semibold text-gray-800 mb-3">Form Fields</h3>
+
+                            <div id="fieldsList" class="space-y-3 mb-4"></div>
 
                             <button type="button" onclick="addField()"
-                                class="mt-3 inline-flex items-center px-3 py-1.5 border border-dashed border-gray-400 rounded-md text-sm text-gray-600 hover:border-indigo-500 hover:text-indigo-600 transition">
+                                class="border border-dashed border-gray-400 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-50">
                                 + Add Field
                             </button>
                         </div>
 
-                        <x-input-error :messages="$errors->get('fields')" class="mt-2" />
+                        <input type="hidden" name="fields" id="fieldsJson" />
 
-                        <div class="flex justify-end mt-6">
-                            <a href="{{ route('committee.form-templates.index', $competition) }}" class="mr-3 text-gray-500 hover:text-gray-700 py-2 px-4">Cancel</a>
-                            <x-primary-button onclick="prepareSubmit()">{{ __('Save Template') }}</x-primary-button>
+                        <div class="flex justify-end gap-3 mt-6">
+                            <a href="{{ route('committee.form-templates.index', $competition) }}"
+                                class="text-gray-600 hover:text-gray-900">
+                                Cancel
+                            </a>
+
+                            <x-primary-button>
+                                {{ __('Save Template') }}
+                            </x-primary-button>
                         </div>
                     </form>
                 </div>
@@ -81,13 +82,59 @@
         let fields = [];
         const fieldTypes = ['text', 'email', 'number', 'textarea', 'file', 'select', 'checkbox', 'date'];
 
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;');
+        }
+
+        function syncFieldsFromDOM() {
+            document.querySelectorAll('#fieldsList [data-index]').forEach((row) => {
+                const index = Number(row.dataset.index);
+
+                if (!fields[index]) {
+                    return;
+                }
+
+                const labelInput = row.querySelector('[data-field="label"]');
+                const typeSelect = row.querySelector('[data-field="type"]');
+                const requiredInput = row.querySelector('[data-field="required"]');
+                const optionsInput = row.querySelector('[data-field="options"]');
+
+                fields[index].label = labelInput ? labelInput.value : '';
+                fields[index].type = typeSelect ? typeSelect.value : 'text';
+                fields[index].required = requiredInput ? requiredInput.checked : false;
+
+                if (optionsInput) {
+                    fields[index].options = optionsInput.value
+                        .split(',')
+                        .map((item) => item.trim())
+                        .filter((item) => item.length > 0);
+                } else if (!fields[index].options) {
+                    fields[index].options = [];
+                }
+            });
+        }
+
         function addField(preset = null) {
-            const field = preset || { label: '', type: 'text', required: false, options: [] };
+            syncFieldsFromDOM();
+
+            const field = preset || {
+                label: '',
+                type: 'text',
+                required: false,
+                options: []
+            };
+
             fields.push(field);
             renderFields();
         }
 
         function removeField(index) {
+            syncFieldsFromDOM();
             fields.splice(index, 1);
             renderFields();
         }
@@ -96,53 +143,101 @@
             const container = document.getElementById('fieldsList');
             container.innerHTML = '';
 
-            fields.forEach((field, i) => {
-                const div = document.createElement('div');
-                div.className = 'flex items-start gap-3 p-3 bg-gray-50 rounded-lg border';
-                div.innerHTML = `
-                    <div class="flex-1">
-                        <input type="text" placeholder="Field label" value="${field.label}"
-                            onchange="fields[${i}].label = this.value"
-                            class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500" />
+            fields.forEach((field, index) => {
+                const row = document.createElement('div');
+                row.className = 'p-3 bg-gray-50 rounded-lg border';
+                row.dataset.index = index;
+
+                row.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <div class="flex-1">
+                            <input
+                                type="text"
+                                placeholder="Field label"
+                                value="${escapeHtml(field.label)}"
+                                data-field="label"
+                                oninput="fields[${index}].label = this.value"
+                                class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            />
+                        </div>
+
+                        <div class="w-32">
+                            <select
+                                data-field="type"
+                                onchange="fields[${index}].type = this.value; syncFieldsFromDOM(); renderFields();"
+                                class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            >
+                                ${fieldTypes.map((type) => `
+                                    <option value="${type}" ${field.type === type ? 'selected' : ''}>${type}</option>
+                                `).join('')}
+                            </select>
+                        </div>
+
+                        <label class="flex items-center text-sm text-gray-600 whitespace-nowrap">
+                            <input
+                                type="checkbox"
+                                data-field="required"
+                                ${field.required ? 'checked' : ''}
+                                onchange="fields[${index}].required = this.checked"
+                                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500 mr-1"
+                            />
+                            Required
+                        </label>
+
+                        <button
+                            type="button"
+                            onclick="removeField(${index})"
+                            class="text-red-500 hover:text-red-700 text-lg font-bold"
+                        >
+                            &times;
+                        </button>
                     </div>
-                    <div class="w-32">
-                        <select onchange="fields[${i}].type = this.value; renderFields();"
-                            class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            ${fieldTypes.map(t => `<option value="${t}" ${field.type === t ? 'selected' : ''}>${t}</option>`).join('')}
-                        </select>
-                    </div>
-                    <label class="flex items-center text-sm text-gray-600 whitespace-nowrap">
-                        <input type="checkbox" ${field.required ? 'checked' : ''}
-                            onchange="fields[${i}].required = this.checked"
-                            class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500 mr-1" />
-                        Required
-                    </label>
-                    <button type="button" onclick="removeField(${i})" class="text-red-500 hover:text-red-700 text-lg font-bold">&times;</button>
+
+                    ${field.type === 'select' ? `
+                        <div class="mt-3">
+                            <input
+                                type="text"
+                                placeholder="Options, contoh: Beginner, Intermediate, Advanced"
+                                value="${escapeHtml((field.options || []).join(', '))}"
+                                data-field="options"
+                                oninput="fields[${index}].options = this.value.split(',').map(item => item.trim()).filter(item => item.length > 0)"
+                                class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            />
+                        </div>
+                    ` : ''}
                 `;
 
-                // Options for select type
-                if (field.type === 'select') {
-                    const optDiv = document.createElement('div');
-                    optDiv.className = 'mt-2 col-span-full w-full';
-                    optDiv.innerHTML = `
-                        <input type="text" placeholder="Options (comma-separated)" value="${(field.options || []).join(', ')}"
-                            onchange="fields[${i}].options = this.value.split(',').map(s => s.trim()).filter(s => s)"
-                            class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500" />
-                    `;
-                    div.appendChild(optDiv);
-                }
-
-                container.appendChild(div);
+                container.appendChild(row);
             });
         }
 
+        function toggleBuilder() {
+            const cloneValue = document.getElementById('clone_from').value;
+            const builder = document.getElementById('manualBuilder');
+
+            if (cloneValue) {
+                builder.style.display = 'none';
+            } else {
+                builder.style.display = 'block';
+            }
+        }
+
         function prepareSubmit() {
-            // Sync labels from inputs before submit
-            const inputs = document.querySelectorAll('#fieldsList input[type="text"]');
+            syncFieldsFromDOM();
             document.getElementById('fieldsJson').value = JSON.stringify(fields);
         }
 
-        // Init with at least one field
-        addField({ label: 'Full Name', type: 'text', required: true, options: [] });
+        document.getElementById('templateForm').addEventListener('submit', function () {
+            prepareSubmit();
+        });
+
+        addField({
+            label: 'Full Name',
+            type: 'text',
+            required: true,
+            options: []
+        });
+
+        toggleBuilder();
     </script>
 </x-app-layout>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,17 +8,15 @@
     <title>@yield('title', config('app.name', 'CompeteHub'))</title>
     <meta name="description" content="@yield('description', 'Platform manajemen kompetisi terpadu')">
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
 
-    <!-- Scripts dari Week 1 (Tailwind & AlpineJS) -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <style>
-        /* ── Design System Tokens ─────────────────────────── */
         :root {
             --card: #fcfcfc;
             --ring: #72e3ad;
@@ -63,7 +62,6 @@
             --sidebar-accent-foreground: #202020;
             --sidebar-primary-foreground: #1e2723;
 
-            /* Legacy mappings to keep the view working */
             --color-primary: var(--primary);
             --color-primary-dark: var(--chart-5);
             --color-primary-light: var(--chart-1);
@@ -86,15 +84,14 @@
             --radius-lg: calc(var(--radius) + 4px);
             --radius-xl: calc(var(--radius) + 12px);
 
-            --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
-            --shadow-md: var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-spread) rgba(0,0,0,var(--shadow-opacity));
-            --shadow-lg: 0 4px 12px rgba(0,0,0,.1);
-            --shadow-glow: 0 0 15px rgba(114,227,173,.3);
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, .05);
+            --shadow-md: var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-spread) rgba(0, 0, 0, var(--shadow-opacity));
+            --shadow-lg: 0 4px 12px rgba(0, 0, 0, .1);
+            --shadow-glow: 0 0 15px rgba(114, 227, 173, .3);
 
-            --transition: 0.2s cubic-bezier(.4,0,.2,1);
+            --transition: 0.2s cubic-bezier(.4, 0, .2, 1);
         }
 
-        /* ── Reset & Base ─────────────────────────────────── */
         body {
             font-family: var(--font-sans), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--color-bg);
@@ -105,10 +102,16 @@
             padding: 0;
         }
 
-        a { color: var(--color-primary-light); text-decoration: none; transition: color var(--transition); }
-        a:hover { color: var(--color-primary); }
+        a {
+            color: var(--color-primary-light);
+            text-decoration: none;
+            transition: color var(--transition);
+        }
 
-        /* ── Navbar ───────────────────────────────────────── */
+        a:hover {
+            color: var(--color-primary);
+        }
+
         .navbar {
             background: rgba(252, 252, 252, 0.9);
             backdrop-filter: blur(10px);
@@ -126,18 +129,20 @@
             align-items: center;
             justify-content: space-between;
             height: 64px;
+            gap: 1.5rem;
         }
 
         .navbar-brand {
             font-size: 1.5rem;
             font-weight: 800;
             color: var(--color-primary);
+            white-space: nowrap;
         }
 
         .navbar-nav {
             display: flex;
             align-items: center;
-            gap: 1.5rem;
+            gap: 1.25rem;
             list-style: none;
             margin: 0;
             padding: 0;
@@ -160,6 +165,7 @@
             display: flex;
             align-items: center;
             gap: 0.75rem;
+            white-space: nowrap;
         }
 
         .nav-avatar {
@@ -175,14 +181,50 @@
             font-size: 0.8rem;
         }
 
-        /* ── Container ────────────────────────────────────── */
+        .nav-user-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        .nav-user-role {
+            font-size: 0.7rem;
+            color: var(--color-text-dim);
+            text-transform: capitalize;
+            margin-top: -0.25rem;
+        }
+
+        .nav-profile {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--color-text-muted);
+        }
+
+        .nav-profile:hover {
+            color: var(--color-text);
+        }
+
+        .logout-button {
+            border: none;
+            background: transparent;
+            color: var(--color-danger);
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .logout-button:hover {
+            text-decoration: underline;
+        }
+
         .container-custom {
             max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
         }
 
-        /* ── Cards ────────────────────────────────────────── */
         .card {
             background: var(--color-bg-card);
             border: 1px solid var(--color-border);
@@ -203,7 +245,6 @@
             margin-bottom: 0.5rem;
         }
 
-        /* ── Buttons ──────────────────────────────────────── */
         .btn {
             display: inline-flex;
             align-items: center;
@@ -219,72 +260,248 @@
             line-height: 1.4;
         }
 
-        .btn-primary { background: var(--color-primary); color: var(--primary-foreground); }
-        .btn-secondary { background: var(--color-bg-elevated); color: var(--color-text); border: 1px solid var(--color-border); }
-        .btn-danger { background: var(--color-danger); color: var(--destructive-foreground); }
-        .btn-success { background: var(--color-success); color: white; }
-        .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
-
-        /* ── Forms ────────────────────────────────────────── */
-        .form-group { margin-bottom: 1.25rem; }
-        .form-label { display: block; font-weight: 600; font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.5rem; }
-        .form-control {
-            width: 100%; padding: 0.7rem 1rem; background: var(--color-bg); border: 1px solid var(--color-border);
-            border-radius: var(--radius-sm); color: var(--color-text); font-size: 0.9rem; font-family: inherit;
+        .btn-primary {
+            background: var(--color-primary);
+            color: var(--primary-foreground);
         }
 
-        /* ── Utility ──────────────────────────────────────── */
-        .text-muted { color: var(--color-text-muted); }
-        .text-success { color: var(--color-success); }
-        .text-danger { color: var(--color-danger); }
-        .mt-1 { margin-top: 0.5rem; }
-        .mt-2 { margin-top: 1rem; }
-        .mb-2 { margin-bottom: 1rem; }
-        .flex { display: flex; }
-        .items-center { align-items: center; }
-        .gap-1 { gap: 0.5rem; }
-        .gap-2 { gap: 1rem; }
-        .grid { display: grid; gap: 1.5rem; }
-        .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
-        .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
-        
-        .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
-        .page-title { font-size: 1.75rem; font-weight: 800; margin: 0; }
-        .page-subtitle { color: var(--color-text-muted); font-size: 0.95rem; margin-top: 0.25rem; }
-        .section-title { font-size: 1.1rem; font-weight: 700; color: var(--color-text-muted); margin-bottom: 1rem; }
+        .btn-secondary {
+            background: var(--color-bg-elevated);
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
+        }
+
+        .btn-danger {
+            background: var(--color-danger);
+            color: var(--destructive-foreground);
+        }
+
+        .btn-success {
+            background: var(--color-success);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            color: var(--color-text);
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
+
+        .text-muted {
+            color: var(--color-text-muted);
+        }
+
+        .text-success {
+            color: var(--color-success);
+        }
+
+        .text-danger {
+            color: var(--color-danger);
+        }
+
+        .mt-1 {
+            margin-top: 0.5rem;
+        }
+
+        .mt-2 {
+            margin-top: 1rem;
+        }
+
+        .mb-2 {
+            margin-bottom: 1rem;
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .gap-1 {
+            gap: 0.5rem;
+        }
+
+        .gap-2 {
+            gap: 1rem;
+        }
+
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .grid-cols-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .grid-cols-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .page-subtitle {
+            color: var(--color-text-muted);
+            font-size: 0.95rem;
+            margin-top: 0.25rem;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--color-text-muted);
+            margin-bottom: 1rem;
+        }
 
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        .animate-in { animation: fadeInUp 0.4s ease-out both; }
+
+        .animate-in {
+            animation: fadeInUp 0.4s ease-out both;
+        }
     </style>
 
     @stack('styles')
 </head>
+
 <body class="font-sans antialiased text-gray-900">
     <div class="min-h-screen flex flex-col">
-        
-        <!-- Navbar -->
         <nav class="navbar">
             <div class="navbar-inner">
-                <a href="/" class="navbar-brand">CompeteHub</a>
-
-                <ul class="navbar-nav">
-                    <li><a href="{{ route('teams.index') }}" class="{{ request()->routeIs('teams.*') ? 'active' : '' }}">Tim Saya</a></li>
-                    <li><a href="{{ route('broadcast.create') }}" class="{{ request()->routeIs('broadcast.*') ? 'active' : '' }}">Kirim Email</a></li>
-                </ul>
+                <a href="{{ auth()->check() ? route('dashboard') : route('login') }}" class="navbar-brand">
+                    CompeteHub
+                </a>
 
                 @auth
-                <div class="nav-user">
-                    <div class="nav-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</div>
-                    <span style="font-size: 0.9rem; font-weight: 500;">{{ auth()->user()->name }}</span>
-                </div>
+                    <ul class="navbar-nav">
+                        <li>
+                            <a href="{{ route('dashboard') }}"
+                                class="{{ request()->routeIs('dashboard') || request()->routeIs('*.dashboard') ? 'active' : '' }}">
+                                Dashboard
+                            </a>
+                        </li>
+
+                        @if(auth()->user()->role === 'committee')
+                            <li>
+                                <a href="{{ route('committee.competitions.index') }}"
+                                    class="{{ request()->routeIs('committee.competitions.*') || request()->routeIs('committee.form-templates.*') || request()->routeIs('committee.registrations.*') ? 'active' : '' }}">
+                                    Kompetisi
+                                </a>
+                            </li>
+                        @elseif(auth()->user()->role === 'participant')
+                            <li>
+                                <a href="{{ route('participant.competitions.index') }}"
+                                    class="{{ request()->routeIs('participant.competitions.*') ? 'active' : '' }}">
+                                    Browse Competitions
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('participant.registrations.index') }}"
+                                    class="{{ request()->routeIs('participant.registrations.*') ? 'active' : '' }}">
+                                    My Registrations
+                                </a>
+                            </li>
+                        @endif
+
+                        <li>
+                            <a href="{{ route('teams.index') }}"
+                                class="{{ request()->routeIs('teams.*') ? 'active' : '' }}">
+                                Tim Saya
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="{{ route('broadcast.create') }}"
+                                class="{{ request()->routeIs('broadcast.*') ? 'active' : '' }}">
+                                Kirim Email
+                            </a>
+                        </li>
+                    </ul>
+
+                    <div class="nav-user">
+                        <div class="nav-avatar">
+                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                        </div>
+
+                        <div>
+                            <div class="nav-user-name">{{ auth()->user()->name }}</div>
+                            <div class="nav-user-role">{{ auth()->user()->role }}</div>
+                        </div>
+
+                        <a href="{{ route('profile.edit') }}" class="nav-profile">
+                            Edit Profile
+                        </a>
+
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="logout-button">
+                                Logout
+                            </button>
+                        </form>
+                    </div>
+                @else
+                    <ul class="navbar-nav">
+                        <li>
+                            <a href="{{ route('login') }}" class="{{ request()->routeIs('login') ? 'active' : '' }}">
+                                Login
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('register') }}" class="{{ request()->routeIs('register') ? 'active' : '' }}">
+                                Register
+                            </a>
+                        </li>
+                    </ul>
                 @endauth
             </div>
         </nav>
 
-        <!-- Flash Messages -->
         <div class="container-custom" style="padding-bottom: 0;">
             @if(session('success'))
                 <x-alert type="success">
@@ -309,21 +526,18 @@
             @endif
         </div>
 
-        <!-- Header untuk Week 1 / Tailwind -->
         @isset($header)
-            <header class="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-10" style="margin-bottom: 2rem;">
+            <header class="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-10"
+                style="margin-bottom: 2rem;">
                 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                     {{ $header }}
                 </div>
             </header>
         @endisset
 
-        <!-- Main Content -->
         <main class="container-custom flex-1 relative">
-            <!-- Tempat merender yield (custom theme FO6) -->
             @yield('content')
-            
-            <!-- Tempat merender slot (Tailwind component week1) -->
+
             <div class="relative z-10">
                 {{ $slot ?? '' }}
             </div>
@@ -332,4 +546,5 @@
 
     @stack('scripts')
 </body>
+
 </html>
