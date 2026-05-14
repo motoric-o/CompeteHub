@@ -21,6 +21,10 @@ class ScoreProxy implements ScoringServiceInterface
             ->where('competition_id', $submission->competition_id)
             ->exists();
 
+        if (!$isAssigned) {
+            throw new UnauthorizedJudgeException("Juri tidak ditugaskan untuk menilai lomba ini.");
+        }
+
         return $this->realService->submitScore($submissionId, $judgeUserId, $score, $notes);
     }
 }
