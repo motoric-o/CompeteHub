@@ -10,7 +10,9 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             UserSeeder::class,
+            ScoringTypeSeeder::class,
             CompetitionSeeder::class,
+            ScoringCriterionSeeder::class,
             RoundSeeder::class,
             TeamSeeder::class,
             TeamMemberSeeder::class,
@@ -22,6 +24,7 @@ class DatabaseSeeder extends Seeder
             BracketSeeder::class,
             SubmissionSeeder::class,
             ScoreSeeder::class,
+            CriterionScoreSeeder::class,
             LeaderboardSeeder::class,
             ContributionStatSeeder::class,
             NotificationSeeder::class,
