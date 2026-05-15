@@ -11,7 +11,7 @@ class LeaderboardEntry extends Model
 
     protected $fillable = [
         'competition_id', 'round_id', 'user_id', 'team_id',
-        'total_score', 'rank', 'last_updated',
+        'total_score', 'rank', 'previous_rank', 'last_updated',
     ];
 
     protected function casts(): array

@@ -464,26 +464,28 @@
                         </li>
                     </ul>
 
-                    <div class="nav-user">
-                        <div class="nav-avatar">
-                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                    {{-- User Dropdown (Alpine.js) --}}
+                    <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                        <button @click="open = !open" class="nav-user" style="cursor: pointer; background: none; border: none; font-family: inherit;">
+                            <div class="nav-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</div>
+                            <div>
+                                <div class="nav-user-name">{{ auth()->user()->name }}</div>
+                                <div class="nav-user-role">{{ auth()->user()->role }}</div>
+                            </div>
+                            <svg style="width: 16px; height: 16px; color: #707070;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+
+                        <div x-show="open" x-transition.opacity style="display: none; position: absolute; right: 0; margin-top: 0.5rem; width: 12rem; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); padding: 0.25rem 0; z-index: 50;">
+                            <a href="{{ route('profile.edit') }}" style="display: block; padding: 0.5rem 1rem; font-size: 0.85rem; color: var(--color-text-muted); text-decoration: none;">
+                                Profil
+                            </a>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" style="display: block; width: 100%; text-align: left; padding: 0.5rem 1rem; font-size: 0.85rem; color: var(--color-danger); background: none; border: none; cursor: pointer; font-family: inherit;">
+                                    Logout
+                                </button>
+                            </form>
                         </div>
-
-                        <div>
-                            <div class="nav-user-name">{{ auth()->user()->name }}</div>
-                            <div class="nav-user-role">{{ auth()->user()->role }}</div>
-                        </div>
-
-                        <a href="{{ route('profile.edit') }}" class="nav-profile">
-                            Edit Profile
-                        </a>
-
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="logout-button">
-                                Logout
-                            </button>
-                        </form>
                     </div>
                 @else
                     <ul class="navbar-nav">
