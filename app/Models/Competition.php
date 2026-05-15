@@ -16,7 +16,8 @@ class Competition extends Model
         'name',
         'description',
         'type',
-        'scoring_type',
+        'scoring_type_id',
+        'time_scoring_threshold',
         'registration_fee',
         'quota',
         'banner_url',
@@ -41,11 +42,6 @@ class Competition extends Model
         ];
     }
 
-    // ── Relationships ──────────────────────────────────────
-
-    /**
-     * Panitia (committee) yang membuat kompetisi ini.
-     */
     public function committee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
@@ -80,9 +76,6 @@ class Competition extends Model
         return $this->type === 'team';
     }
 
-    /**
-     * Apakah pendaftaran masih dibuka?
-     */
     public function isRegistrationOpen(): bool
     {
         return $this->status === 'open'
@@ -90,13 +83,10 @@ class Competition extends Model
             && $this->registration_end >= now();
     }
 
-    /**
-     * Apakah kuota masih tersedia?
-     */
     public function hasAvailableQuota(): bool
     {
         if ($this->quota === null) {
-            return true; // unlimited
+            return true; 
         }
 
         return $this->teams()->count() < $this->quota;

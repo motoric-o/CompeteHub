@@ -1,52 +1,104 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-2xl text-gray-900 leading-tight tracking-tight">
-            {{ __('My Competitions') }}
-        </h2>
-    </x-slot>
+@extends('layouts.app')
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white/90 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-2xl border border-gray-100 p-8">
-                
-                <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <h3 class="text-xl font-bold text-gray-900">Manage Your Events</h3>
-                        <p class="text-sm text-gray-500">Select a competition to manage its forms or verify registrations.</p>
-                    </div>
-                    <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl font-semibold transition-colors">
-                        + New Competition
-                    </button>
-                </div>
+@section('title', 'Manajemen Kompetisi — CompeteHub')
+@section('description', 'Kelola kompetisi Anda, buat formulir pendaftaran, dan verifikasi peserta.')
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    @forelse($competitions as $competition)
-                        <div class="border border-gray-200 rounded-2xl p-6 hover:border-indigo-300 hover:shadow-lg transition-all">
-                            <h4 class="text-lg font-bold text-gray-900 mb-2">{{ $competition->name }}</h4>
-                            <div class="flex gap-4 text-sm text-gray-600 mb-4">
-                                <span class="bg-gray-100 px-2 py-1 rounded">{{ ucfirst($competition->type) }}</span>
-                                <span class="bg-gray-100 px-2 py-1 rounded">{{ ucfirst($competition->status) }}</span>
-                            </div>
-                            <div class="flex gap-3">
-                                <a href="{{ route('committee.form-templates.index', $competition) }}" class="text-indigo-600 font-medium hover:underline flex items-center gap-1">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                    Forms
-                                </a>
-                                <a href="{{ route('committee.registrations.index', $competition) }}" class="text-green-600 font-medium hover:underline flex items-center gap-1">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    Registrations
-                                </a>
-                            </div>
-                        </div>
-                    @empty
-                        <div class="col-span-2 text-center py-10 bg-gray-50 rounded-2xl border border-dashed border-gray-300">
-                            <p class="text-gray-500">You haven't created any competitions yet.</p>
-                            <p class="text-sm text-gray-400 mt-1">(Create Competition feature is pending F-01 implementation)</p>
-                        </div>
-                    @endforelse
-                </div>
-
-            </div>
-        </div>
+@section('content')
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Manajemen Kompetisi</h1>
+        <p class="page-subtitle">Kelola seluruh aspek kompetisi yang Anda selenggarakan</p>
     </div>
-</x-app-layout>
+    <div>
+        <a href="{{ route('committee.management.competitions.create') }}" class="btn btn-primary" id="btn-create-competition">
+            + Kompetisi Baru
+        </a>
+    </div>
+</div>
+
+<div class="section animate-in">
+    <div class="grid grid-cols-2">
+        @forelse($competitions as $competition)
+            <div class="card" id="competition-card-{{ $competition->id }}">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                    <div>
+                        <h3 class="card-title" style="margin-bottom: 0.25rem;">{{ $competition->name }}</h3>
+                        <div class="flex gap-1 items-center">
+                            <span class="badge {{ $competition->type === 'team' ? 'badge-primary' : 'badge-secondary' }}" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">
+                                {{ ucfirst($competition->type) }}
+                            </span>
+                            <span class="badge" style="font-size: 0.7rem; padding: 0.2rem 0.5rem; background: var(--color-bg-elevated); color: var(--color-text-muted);">
+                                {{ ucfirst($competition->status) }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div style="font-size: 0.8rem; font-weight: 700; color: var(--color-primary-dark);">
+                            Rp {{ number_format($competition->registration_fee, 0, ',', '.') }}
+                        </div>
+                        <div style="font-size: 0.7rem; color: var(--color-text-dim);">
+                            Kuota: {{ $competition->quota ?? '∞' }}
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 1.5rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                    {{ $competition->description ?? 'Tidak ada deskripsi.' }}
+                </p>
+
+                <div class="flex gap-1" style="flex-wrap: wrap;">
+                    <a href="{{ route('committee.form-templates.index', $competition) }}" class="btn btn-outline btn-sm" style="flex: 1; justify-content: center;">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Formulir
+                    </a>
+                    <a href="{{ route('committee.registrations.index', $competition) }}" class="btn btn-outline btn-sm" style="flex: 1; justify-content: center;">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Peserta
+                    </a>
+                    <a href="{{ route('committee.rounds.index', $competition) }}" class="btn btn-outline btn-sm" style="flex: 1; justify-content: center;">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        Babak
+                    </a>
+                    <a href="{{ route('committee.management.competitions.edit', $competition) }}" class="btn btn-secondary btn-sm" title="Edit">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    </a>
+                </div>
+            </div>
+        @empty
+            <div class="card" style="grid-column: span 2; text-align: center; padding: 4rem 2rem; border-style: dashed;">
+                <div class="empty-state">
+                    <p class="empty-state-text" style="font-size: 1.1rem; font-weight: 600;">Belum ada kompetisi yang dibuat</p>
+                    <p class="text-muted" style="margin-bottom: 1.5rem;">Mulai selenggarakan event pertama Anda sekarang juga!</p>
+                    <a href="{{ route('committee.management.competitions.create') }}" class="btn btn-primary">
+                        Buat Kompetisi Pertama
+                    </a>
+                </div>
+            </div>
+        @endforelse
+    </div>
+</div>
+
+<style>
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        border-radius: var(--radius-sm);
+        font-weight: 600;
+        line-height: 1;
+    }
+    .badge-primary { background: var(--color-primary-light); color: var(--primary-foreground); }
+    .badge-secondary { background: var(--muted); color: var(--color-text-muted); }
+    
+    .btn-outline {
+        background: transparent;
+        border: 1px solid var(--color-border);
+        color: var(--color-text);
+    }
+    .btn-outline:hover {
+        border-color: var(--color-primary);
+        color: var(--color-primary-dark);
+        background: var(--color-primary-light);
+    }
+</style>
+@endsection
+
