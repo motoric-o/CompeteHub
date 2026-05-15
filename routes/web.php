@@ -71,6 +71,12 @@ Route::middleware(['auth', 'verified', 'role:committee'])
 
         Route::post('/competitions/{competition}/registrations/{registration}/validate', [RegistrationVerificationController::class, 'validate'])
             ->name('registrations.validate');
+Route::middleware(['auth', 'verified', 'role:judge'])->prefix('judge')->name('judge.')->group(function () {
+    Route::get('/dashboard', fn() => view('judge.dashboard'))->name('dashboard');
+    Route::get('/competitions', [\App\Http\Controllers\Judge\CompetitionController::class, 'index'])->name('competitions.index');
+    Route::get('/competitions/{competition}/submissions', [\App\Http\Controllers\Judge\SubmissionController::class, 'index'])->name('submissions.index');
+    Route::post('/competitions/{competition}/submissions/{submission}/score', [\App\Http\Controllers\Judge\SubmissionController::class, 'score'])->name('submissions.score');
+});
 
         Route::patch('/documents/{document}/verify', [RegistrationVerificationController::class, 'verifyDocument'])
             ->name('documents.verify');
@@ -79,12 +85,11 @@ Route::middleware(['auth', 'verified', 'role:committee'])
             ->name('payments.verify');
     });
 
-Route::middleware(['auth', 'verified', 'role:judge'])
-    ->prefix('judge')
-    ->name('judge.')
-    ->group(function () {
-        Route::get('/dashboard', fn () => view('judge.dashboard'))->name('dashboard');
-    });
+    Route::get('/registrations', [RegistrationController::class, 'index'])->name('registrations.index');
+    Route::get('/competitions/{competition}/register', [RegistrationController::class, 'create'])->name('registrations.create');
+    Route::post('/competitions/{competition}/register', [RegistrationController::class, 'store'])->name('registrations.store');
+    Route::get('/competitions/{competition}/registrations/{registration}', [RegistrationController::class, 'show'])->name('registrations.show');
+    Route::get('/competitions/{competition}/registrations/{registration}/certificate', [RegistrationController::class, 'downloadCertificate'])->name('registrations.certificate');
 
 Route::middleware(['auth', 'verified', 'role:participant'])
     ->prefix('participant')

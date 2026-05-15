@@ -140,6 +140,14 @@ class NotificationFacade
         );
     }
 
+    /**
+     * Generate sertifikat PDF untuk peserta kompetisi.
+     */
+    public function generatePDFCertificate(int $userId, int $competitionId, array $data): string
+    {
+        return $this->pdfGenerator->generateCertificate($userId, $competitionId, $data);
+    }
+
     // ── Storage ────────────────────────────────────────────
 
     /**
