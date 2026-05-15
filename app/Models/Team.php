@@ -18,11 +18,8 @@ class Team extends Model
         'logo_url',
     ];
 
-    // ── Boot ───────────────────────────────────────────────
-
     protected static function booted(): void
     {
-        // Auto-generate invite_code saat membuat tim baru
         static::creating(function (Team $team) {
             if (empty($team->invite_code)) {
                 $team->invite_code = self::generateUniqueInviteCode();
@@ -30,62 +27,37 @@ class Team extends Model
         });
     }
 
-    // ── Relationships ──────────────────────────────────────
-
-    /**
-     * Kompetisi yang diikuti tim ini.
-     */
     public function competition(): BelongsTo
     {
         return $this->belongsTo(Competition::class);
     }
 
-    /**
-     * Kapten tim (pembuat tim).
-     */
     public function captain(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    /**
-     * Semua anggota tim (termasuk kapten) via pivot team_members.
-     */
     public function members(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'team_members')
                     ->withPivot('joined_at');
     }
 
-    /**
-     * Record team_members (untuk akses langsung ke model pivot).
-     */
     public function teamMembers(): HasMany
     {
         return $this->hasMany(TeamMember::class);
     }
 
-    // ── Helper Methods ─────────────────────────────────────
-
-    /**
-     * Apakah user tertentu adalah kapten tim ini?
-     */
     public function isCaptain(User $user): bool
     {
         return $this->user_id === $user->id;
     }
 
-    /**
-     * Apakah user tertentu sudah menjadi anggota tim ini?
-     */
     public function hasMember(User $user): bool
     {
         return $this->members()->where('users.id', $user->id)->exists();
     }
 
-    /**
-     * Generate kode undangan unik 8 karakter uppercase.
-     */
     public static function generateUniqueInviteCode(): string
     {
         do {

@@ -5,15 +5,13 @@ namespace App\Http\Controllers\Committee;
 use App\Http\Controllers\Controller;
 use App\Models\Competition;
 use App\Models\ScoringType;
+use App\Factories\CompetitionFactory;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 
 class CompetitionController extends Controller
 {
-    /**
-     * Display a listing of the committee's competitions.
-     */
     public function index(): View
     {
         $competitions = Competition::where('user_id', auth()->id())->latest()->get();
@@ -43,10 +41,9 @@ class CompetitionController extends Controller
             'registration_end' => 'nullable|date|after_or_equal:registration_start',
             'status' => 'nullable|in:draft,open,ongoing,finished',
             'rules' => 'nullable|string',
-            'user_id' => 'required|exists:users,id',
         ]);
 
-        Competition::create($validated);
+        CompetitionFactory::create($validated);
 
         return redirect()->route('committee.management.competitions.index');
     }
@@ -73,7 +70,6 @@ class CompetitionController extends Controller
             'registration_end' => 'nullable|date|after_or_equal:registration_start',
             'status' => 'nullable|in:draft,open,ongoing,finished',
             'rules' => 'nullable|string',
-            'user_id' => 'required|exists:users,id',
         ]);
 
         $competition->update($validated);

@@ -18,6 +18,7 @@ abstract class AbstractCompetition
 
     public function __construct(Competition $competition)
     {
+        $competition->load('scoringType');
         $this->competition = $competition;
         $this->scoring = $this->resolveScoringStrategy($competition);
     }
@@ -26,7 +27,7 @@ abstract class AbstractCompetition
     {
         if ($competition->scoringType && $competition->scoringType->name === 'Time Based') {
             return new TimeBasedScoringStrategy($competition->time_scoring_threshold ?? 0);
-        } else if ($competition->scoringType && $competition->scoringType->name === 'Judge Based') {
+        } else if ($competition->scoringType && $competition->scoringType->name === 'Judge Score') {
             return new JudgeBasedScoringStrategy();
         }
 

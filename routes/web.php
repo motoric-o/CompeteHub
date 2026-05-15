@@ -76,6 +76,19 @@ Route::middleware(['auth', 'verified', 'role:committee'])->prefix('committee')->
     Route::resource('management/competitions', CommitteeCompetitionController::class)
         ->names('management.competitions');
 
+    // Rounds
+    Route::resource('competitions.rounds', \App\Http\Controllers\Committee\RoundController::class)
+        ->names('rounds');
+
+    // Brackets
+    Route::post('competitions/{competition}/rounds/{round}/brackets/auto-generate', [\App\Http\Controllers\Committee\BracketController::class, 'autoGenerate'])
+        ->name('rounds.brackets.auto-generate');
+    Route::post('competitions/{competition}/rounds/{round}/brackets', [\App\Http\Controllers\Committee\BracketController::class, 'store'])
+        ->name('rounds.brackets.store');
+    Route::delete('competitions/{competition}/rounds/{round}/brackets/{bracket}', [\App\Http\Controllers\Committee\BracketController::class, 'destroy'])
+        ->name('rounds.brackets.destroy');
+    Route::post('competitions/{competition}/rounds/{round}/brackets/{bracket}/winner', [\App\Http\Controllers\Committee\BracketController::class, 'setWinner'])
+        ->name('rounds.brackets.winner');
 
 });
 
