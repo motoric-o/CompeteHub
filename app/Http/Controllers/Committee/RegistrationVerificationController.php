@@ -16,7 +16,8 @@ class RegistrationVerificationController extends Controller
 {
     public function __construct(
         private RegistrationValidator $validator,
-    ) {}
+    ) {
+    }
 
     /**
      * List registrations for a competition.
@@ -68,9 +69,11 @@ class RegistrationVerificationController extends Controller
             'status' => ['required', 'in:verified,rejected'],
         ]);
 
-        $document->update(['status' => $request->status]);
+        $registration = $document->registration()->with('competition')->firstOrFail();
 
-        $registration = $document->registration;
+        $this->authorizeCommittee($registration->competition);
+
+        $document->update(['status' => $request->status]);
 
         return redirect()
             ->route('committee.registrations.show', [$registration->competition_id, $registration])
@@ -86,12 +89,14 @@ class RegistrationVerificationController extends Controller
             'status' => ['required', 'in:paid,unpaid'],
         ]);
 
+        $registration = $payment->registration()->with('competition')->firstOrFail();
+
+        $this->authorizeCommittee($registration->competition);
+
         $payment->update([
-            'status'      => $request->status,
+            'status' => $request->status,
             'verified_at' => $request->status === 'paid' ? now() : null,
         ]);
-
-        $registration = $payment->registration;
 
         return redirect()
             ->route('committee.registrations.show', [$registration->competition_id, $registration])
