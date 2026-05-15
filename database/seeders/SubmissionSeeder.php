@@ -21,7 +21,7 @@ class SubmissionSeeder extends Seeder
         $budi = DB::table('users')->where('email', 'budi@gmail.com')->value('id');
 
         DB::table('submissions')->insert([
-            // Tim Alpha — Hackathon Penyisihan (scored)
+            // Tim Alpha — Hackathon Penyisihan (scored, submit pertama, time bonus 5 karena paling cepat)
             [
                 'competition_id' => $hackathon,
                 'round_id'       => $penyisihan,
@@ -33,10 +33,12 @@ class SubmissionSeeder extends Seeder
                 'submitted_at'   => '2025-06-01 14:30:00',
                 'final_score'    => 87.50,
                 'status'         => 'scored',
+                'revision_count' => 0,
+                'time_bonus'     => 5.00,
                 'created_at'     => now(),
                 'updated_at'     => now(),
             ],
-            // Tim Beta — Hackathon Penyisihan (under_review)
+            // Tim Beta — Hackathon Penyisihan (submitted, 2 revisions → penalty)
             [
                 'competition_id' => $hackathon,
                 'round_id'       => $penyisihan,
@@ -47,11 +49,13 @@ class SubmissionSeeder extends Seeder
                 'file_size'      => 1536000,
                 'submitted_at'   => '2025-06-01 16:00:00',
                 'final_score'    => null,
-                'status'         => 'under_review',
+                'status'         => 'submitted',
+                'revision_count' => 2,
+                'time_bonus'     => 0.00,  // Revisi = 0 bonus
                 'created_at'     => now(),
                 'updated_at'     => now(),
             ],
-            // Budi — CP Babak Utama (scored)
+            // Budi — CP Babak Utama (scored, revisi 1x)
             [
                 'competition_id' => $cp,
                 'round_id'       => $babakUtama,
@@ -63,6 +67,8 @@ class SubmissionSeeder extends Seeder
                 'submitted_at'   => '2025-07-10 11:00:00',
                 'final_score'    => 95.00,
                 'status'         => 'scored',
+                'revision_count' => 1,
+                'time_bonus'     => 0.00,  // Revisi = 0 bonus
                 'created_at'     => now(),
                 'updated_at'     => now(),
             ],

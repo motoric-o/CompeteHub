@@ -10,9 +10,21 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class Registration extends Model
 {
     protected $fillable = [
-        'competition_id', 'user_id', 'team_id',
-        'status', 'rejection_reason', 'payment_proof',
+        'competition_id',
+        'user_id',
+        'form_data',
+        'team_id',
+        'status',
+        'rejection_reason',
+        'payment_proof',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'form_data' => 'array',
+        ];
+    }
 
     public function competition(): BelongsTo
     {
