@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Participant;
 
 use App\Http\Controllers\Controller;
 use App\Models\Competition;
-use App\Models\FormTemplate;
 use App\Models\Registration;
 use App\Models\RegistrationDocument;
 use Illuminate\Http\RedirectResponse;
@@ -13,32 +12,33 @@ use Illuminate\View\View;
 
 class RegistrationController extends Controller
 {
-    /**
-     * Show registration form (dynamic, based on form template).
-     */
-    public function create(Competition $competition): View
+    public function create(Competition $competition): View|RedirectResponse
     {
-        // Cek sudah pernah daftar belum
         $existing = Registration::where('competition_id', $competition->id)
             ->where('user_id', auth()->id())
             ->first();
 
         if ($existing) {
-            return view('participant.registrations.status', compact('competition', 'existing'));
+            return redirect()->route('participant.registrations.show', [$competition, $existing]);
         }
 
-        // Ambil form template pertama dari kompetisi
         $formTemplate = $competition->formTemplates()->first();
 
         return view('participant.registrations.create', compact('competition', 'formTemplate'));
     }
 
-    /**
-     * Submit registration.
-     */
+
     public function store(Request $request, Competition $competition): RedirectResponse
     {
-        // Cek quota
+        $existing = Registration::where('competition_id', $competition->id)
+            ->where('user_id', auth()->id())
+            ->first();
+
+        if ($existing) {
+            return redirect()
+                ->route('participant.registrations.show', [$competition, $existing])
+                ->with('error', 'You have already registered for this competition.');
+        }
         if ($competition->quota) {
             $count = Registration::where('competition_id', $competition->id)
                 ->whereNotIn('status', ['rejected'])
@@ -48,33 +48,81 @@ class RegistrationController extends Controller
             }
         }
 
-        // Cek registration period
         if ($competition->registration_end && now()->isAfter($competition->registration_end)) {
             return back()->with('error', 'Registration period has ended.');
         }
 
-        // Validasi dokumen yang diupload (dari dynamic form)
-        $request->validate([
-            'documents.*' => ['nullable', 'file', 'max:5120'], // max 5MB per file
-        ]);
+        $formTemplate = $competition->formTemplates()->first();
 
-        // Create registration
+        $rules = [
+            'documents.*' => ['nullable', 'file', 'max:5120'],
+            'payment_proof' => [
+                $competition->registration_fee > 0 ? 'required' : 'nullable',
+                'file',
+                'max:5120',
+            ],
+        ];
+
+        if ($formTemplate && is_array($formTemplate->fields)) {
+            foreach ($formTemplate->fields as $field) {
+                $label = $field['label'] ?? null;
+                $type = $field['type'] ?? 'text';
+                $required = $field['required'] ?? false;
+
+                if (!$label || !$required) {
+                    continue;
+                }
+
+                if ($type === 'file') {
+                    $rules["documents.$label"] = ['required', 'file', 'max:5120'];
+                } elseif ($type === 'checkbox') {
+                    $rules["form_data.$label"] = ['accepted'];
+                } else {
+                    $rules["form_data.$label"] = ['required'];
+                }
+            }
+        }
+
+        $request->validate($rules);
+
         $registration = Registration::create([
             'competition_id' => $competition->id,
-            'user_id'        => auth()->id(),
-            'status'         => 'pending',
+            'user_id' => auth()->id(),
+            'form_data' => $request->input('form_data', []),
+            'status' => 'pending',
         ]);
 
-        // Upload documents
         if ($request->hasFile('documents')) {
             foreach ($request->file('documents') as $type => $file) {
                 $path = $file->store('registration-documents/' . $registration->id, 'public');
+
                 RegistrationDocument::create([
                     'registration_id' => $registration->id,
-                    'document_type'   => $type,
-                    'file_path'       => $path,
+                    'document_type' => $type,
+                    'file_path' => $path,
                 ]);
             }
+        }
+
+        if ($competition->registration_fee > 0) {
+            $proofPath = null;
+
+            if ($request->hasFile('payment_proof')) {
+                $proofPath = $request->file('payment_proof')
+                    ->store('payment-proofs/' . $registration->id, 'public');
+            }
+
+            $registration->payment()->create([
+                'amount' => $competition->registration_fee,
+                'status' => 'pending_verification',
+                'proof_path' => $proofPath,
+            ]);
+        } else {
+            $registration->payment()->create([
+                'amount' => 0,
+                'status' => 'free',
+                'verified_at' => now(),
+            ]);
         }
 
         return redirect()
@@ -82,12 +130,10 @@ class RegistrationController extends Controller
             ->with('success', 'Registration submitted! Waiting for verification.');
     }
 
-    /**
-     * Show registration status.
-     */
     public function show(Competition $competition, Registration $registration): View
     {
         abort_unless($registration->user_id === auth()->id(), 403);
+        abort_unless($registration->competition_id === $competition->id, 404);
 
         $registration->load(['documents', 'payment']);
 

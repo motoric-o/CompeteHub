@@ -33,7 +33,33 @@
                     <x-primary-button>{{ __('Run Validation Chain (CoR)') }}</x-primary-button>
                 </form>
             </div>
+            
+            {{-- Form Answers --}}
+            <div class="bg-white shadow-sm sm:rounded-lg p-6">
+                <h3 class="font-semibold text-gray-800 mb-3">Form Answers</h3>
 
+                @if($registration->form_data)
+                    <div class="space-y-2">
+                        @foreach($registration->form_data as $label => $answer)
+                            <div class="text-sm">
+                                <span class="font-medium text-gray-700">{{ $label }}:</span>
+                                <span class="text-gray-600">
+                                    @if(is_array($answer))
+                                        {{ implode(', ', $answer) }}
+                                    @elseif($answer === '1' || $answer === 1)
+                                        Yes
+                                    @else
+                                        {{ $answer }}
+                                    @endif
+                                </span>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <p class="text-sm text-gray-400">No form answers submitted.</p>
+                @endif
+            </div>
+            
             {{-- Documents (CoR tahap 2) --}}
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
                 <h3 class="font-semibold text-gray-800 mb-3">Documents</h3>
