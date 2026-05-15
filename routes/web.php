@@ -78,6 +78,9 @@ Route::middleware(['auth', 'verified', 'role:committee'])->prefix('committee')->
 
 Route::middleware(['auth', 'verified', 'role:judge'])->prefix('judge')->name('judge.')->group(function () {
     Route::get('/dashboard', fn() => view('judge.dashboard'))->name('dashboard');
+    Route::get('/competitions', [\App\Http\Controllers\Judge\CompetitionController::class, 'index'])->name('competitions.index');
+    Route::get('/competitions/{competition}/submissions', [\App\Http\Controllers\Judge\SubmissionController::class, 'index'])->name('submissions.index');
+    Route::post('/competitions/{competition}/submissions/{submission}/score', [\App\Http\Controllers\Judge\SubmissionController::class, 'score'])->name('submissions.score');
 });
 
 Route::middleware(['auth', 'verified', 'role:participant'])->prefix('participant')->name('participant.')->group(function () {
