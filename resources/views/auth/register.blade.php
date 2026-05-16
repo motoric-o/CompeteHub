@@ -1,68 +1,71 @@
 <x-guest-layout>
-    <div class="text-center mb-6">
-        <h2 class="text-2xl font-bold text-gray-900">Create an account</h2>
-        <p class="text-sm text-gray-500 mt-2">Join CompeteHub and start your journey.</p>
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+        <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--foreground, #000000); margin: 0 0 0.5rem; letter-spacing: -0.02em;">Buat Akun Baru</h2>
+        <p style="font-size: 0.875rem; color: var(--muted-foreground, #333333); margin: 0;">Bergabung dengan CompeteHub dan mulai perjalananmu.</p>
     </div>
 
-    <form method="POST" action="{{ route('register') }}" class="space-y-4">
+    <form method="POST" action="{{ route('register') }}" style="display: flex; flex-direction: column; gap: 1.1rem;">
         @csrf
 
         <!-- Name -->
         <div>
-            <x-input-label for="name" :value="__('Full Name')" class="text-gray-700 font-medium" />
-            <x-text-input id="name" class="block mt-1 w-full rounded-xl border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 transition-colors" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" placeholder="John Doe" />
+            <label for="name" style="display: block; font-size: 0.875rem; font-weight: 600; color: var(--foreground, #000000); margin-bottom: 0.4rem;">Nama Lengkap</label>
+            <input id="name" type="text" name="name" value="{{ old('name') }}" required autofocus autocomplete="name"
+                placeholder="John Doe" class="form-input"
+                style="width: 100%; padding: 0.75rem 1rem; background: var(--background, #f7f9f3); border: 1px solid var(--border, #000000); border-radius: calc(var(--radius, 1rem) - 0.25rem); font-family: inherit; font-size: 0.9rem; color: var(--foreground, #000000); box-sizing: border-box; outline: none; transition: border-color 0.2s, box-shadow 0.2s;">
             <x-input-error :messages="$errors->get('name')" class="mt-2" />
         </div>
 
-        <!-- Email Address -->
+        <!-- Email -->
         <div>
-            <x-input-label for="email" :value="__('Email Address')" class="text-gray-700 font-medium" />
-            <x-text-input id="email" class="block mt-1 w-full rounded-xl border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 transition-colors" type="email" name="email" :value="old('email')" required autocomplete="username" placeholder="you@example.com" />
+            <label for="email" style="display: block; font-size: 0.875rem; font-weight: 600; color: var(--foreground, #000000); margin-bottom: 0.4rem;">Alamat Email</label>
+            <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="username"
+                placeholder="anda@email.com" class="form-input"
+                style="width: 100%; padding: 0.75rem 1rem; background: var(--background, #f7f9f3); border: 1px solid var(--border, #000000); border-radius: calc(var(--radius, 1rem) - 0.25rem); font-family: inherit; font-size: 0.9rem; color: var(--foreground, #000000); box-sizing: border-box; outline: none; transition: border-color 0.2s, box-shadow 0.2s;">
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
         <!-- Role -->
         <div>
-            <x-input-label for="role" :value="__('Register As')" class="text-gray-700 font-medium" />
-            <select id="role" name="role"
-                class="block mt-1 w-full rounded-xl border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 transition-colors text-gray-700">
-                <option value="participant" {{ old('role') === 'participant' ? 'selected' : '' }}>👤 Participant</option>
-                <option value="committee" {{ old('role') === 'committee' ? 'selected' : '' }}>🏆 Committee / Organizer</option>
-                <option value="judge" {{ old('role') === 'judge' ? 'selected' : '' }}>⚖️ Judge / Jury</option>
+            <label for="role" style="display: block; font-size: 0.875rem; font-weight: 600; color: var(--foreground, #000000); margin-bottom: 0.4rem;">Daftar Sebagai</label>
+            <select id="role" name="role" class="form-input"
+                style="width: 100%; padding: 0.75rem 1rem; background: var(--background, #f7f9f3); border: 1px solid var(--border, #000000); border-radius: calc(var(--radius, 1rem) - 0.25rem); font-family: inherit; font-size: 0.9rem; color: var(--foreground, #000000); box-sizing: border-box; outline: none; cursor: pointer; transition: border-color 0.2s;">
+                <option value="participant" {{ old('role') === 'participant' ? 'selected' : '' }}>Peserta (Participant)</option>
+                <option value="committee" {{ old('role') === 'committee' ? 'selected' : '' }}>Panitia / Penyelenggara</option>
+                <option value="judge" {{ old('role') === 'judge' ? 'selected' : '' }}>Juri</option>
             </select>
             <x-input-error :messages="$errors->get('role')" class="mt-2" />
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
-            <!-- Password -->
+        <!-- Password -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
             <div>
-                <x-input-label for="password" :value="__('Password')" class="text-gray-700 font-medium" />
-                <x-text-input id="password" class="block mt-1 w-full rounded-xl border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 transition-colors"
-                                type="password"
-                                name="password"
-                                required autocomplete="new-password" placeholder="••••••••" />
+                <label for="password" style="display: block; font-size: 0.875rem; font-weight: 600; color: var(--foreground, #000000); margin-bottom: 0.4rem;">Password</label>
+                <input id="password" type="password" name="password" required autocomplete="new-password"
+                    placeholder="••••••••" class="form-input"
+                    style="width: 100%; padding: 0.75rem 1rem; background: var(--background, #f7f9f3); border: 1px solid var(--border, #000000); border-radius: calc(var(--radius, 1rem) - 0.25rem); font-family: inherit; font-size: 0.9rem; color: var(--foreground, #000000); box-sizing: border-box; outline: none; transition: border-color 0.2s, box-shadow 0.2s;">
                 <x-input-error :messages="$errors->get('password')" class="mt-2" />
             </div>
-
-            <!-- Confirm Password -->
             <div>
-                <x-input-label for="password_confirmation" :value="__('Confirm Password')" class="text-gray-700 font-medium" />
-                <x-text-input id="password_confirmation" class="block mt-1 w-full rounded-xl border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 transition-colors"
-                                type="password"
-                                name="password_confirmation" required autocomplete="new-password" placeholder="••••••••" />
+                <label for="password_confirmation" style="display: block; font-size: 0.875rem; font-weight: 600; color: var(--foreground, #000000); margin-bottom: 0.4rem;">Konfirmasi</label>
+                <input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password"
+                    placeholder="••••••••" class="form-input"
+                    style="width: 100%; padding: 0.75rem 1rem; background: var(--background, #f7f9f3); border: 1px solid var(--border, #000000); border-radius: calc(var(--radius, 1rem) - 0.25rem); font-family: inherit; font-size: 0.9rem; color: var(--foreground, #000000); box-sizing: border-box; outline: none; transition: border-color 0.2s, box-shadow 0.2s;">
                 <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
             </div>
         </div>
 
-        <div class="pt-4">
-            <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all active:scale-[0.98]">
-                {{ __('Create Account') }}
-            </button>
-        </div>
+        <button type="submit" class="btn btn-primary w-full">
+            Buat Akun
+        </button>
 
-        <p class="text-center text-sm text-gray-600 mt-4">
-            Already registered? 
-            <a href="{{ route('login') }}" class="font-medium text-indigo-600 hover:text-indigo-500 transition-colors">Sign in</a>
+        <p style="text-align: center; font-size: 0.875rem; color: var(--muted-foreground, #333333); margin: 0;">
+            Sudah punya akun?
+            <a href="{{ route('login') }}"
+                style="font-weight: 700; color: var(--primary, #4f46e5); text-decoration: none;"
+                onmouseover="this.style.opacity='0.7';" onmouseout="this.style.opacity='1';">
+                Masuk
+            </a>
         </p>
     </form>
 </x-guest-layout>

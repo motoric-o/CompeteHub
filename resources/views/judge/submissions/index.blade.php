@@ -21,13 +21,13 @@
                                 @if($assignment->competition->rounds->isNotEmpty())
                                     <div class="mt-auto">
                                         <a href="{{ route('judge.submissions.round', [$assignment->competition, $assignment->competition->rounds->first()]) }}" 
-                                           class="inline-block px-5 py-2.5 bg-[#6366f1] text-white text-xs font-bold rounded hover:bg-[#4f46e5] transition-colors uppercase tracking-wide">
+                                           class="btn btn-primary btn-sm w-full">
                                             VIEW SUBMISSIONS
                                         </a>
                                     </div>
                                 @else
                                     <div class="mt-auto">
-                                        <span class="inline-block px-5 py-2.5 bg-gray-300 text-gray-600 text-xs font-bold rounded uppercase tracking-wide cursor-not-allowed">
+                                        <span class="btn btn-secondary btn-sm w-full opacity-50 cursor-not-allowed">
                                             NO ROUNDS
                                         </span>
                                     </div>

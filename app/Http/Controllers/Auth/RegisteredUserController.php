@@ -41,9 +41,9 @@ class RegisteredUserController extends Controller
         Auth::login($user);
 
         return match ($user->role) {
-            'committee' => redirect()->route('committee.dashboard'),
-            'judge' => redirect()->route('judge.dashboard'),
-            default => redirect()->route('participant.dashboard'),
+            'committee' => redirect()->intended(route('committee.dashboard', absolute: false)),
+            'judge' => redirect()->intended(route('judge.dashboard', absolute: false)),
+            default => redirect()->intended(route('participant.dashboard', absolute: false)),
         };
     }
 }

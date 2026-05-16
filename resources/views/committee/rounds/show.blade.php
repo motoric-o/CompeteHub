@@ -14,7 +14,7 @@
     <div class="flex gap-2">
         <form action="{{ route('committee.rounds.brackets.auto-generate', [$competition, $round]) }}" method="POST" onsubmit="return confirm('Peringatan: Membuat bagan otomatis akan menghapus bagan yang sudah ada di babak ini. Lanjutkan?');">
             @csrf
-            <button type="submit" class="btn btn-primary bg-indigo-600 hover:bg-indigo-700">⚡ Auto Generate Bagan</button>
+            <button type="submit" class="btn btn-primary">⚡ Auto Generate Bagan</button>
         </form>
     </div>
 </div>

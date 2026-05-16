@@ -13,25 +13,17 @@ use App\Http\Controllers\BroadcastController;
 use App\Http\Controllers\Judge\ScoringController;
 use App\Http\Controllers\LeaderboardController;
 
+use App\Models\Competition;
+
 Route::get('/', function () {
-    if (auth()->check()) {
-        return redirect()->route('dashboard');
-    }
-    return redirect()->route('login');
-});
+    $competitions = Competition::where('status', 'open')->get();
+    return view('welcome', compact('competitions'));
+})->name('home');
 
-// Mock login routes for testing different roles
-Route::get('/login-judge', function () {
-    auth()->loginUsingId(3); // 3 = Jeryko Farelin (Judge)
-    return redirect()->route('judge.dashboard');
-});
-Route::get('/login-participant', function () {
-    auth()->loginUsingId(5); // 5 = Budi Santoso (Participant)
-    return redirect()->route('participant.dashboard');
-});
 
-// Broadcast Email (F-06)
-Route::middleware(['auth'])->group(function () {
+
+// Broadcast Email (F-06) — Committee only
+Route::middleware(['auth', 'verified', 'role:committee'])->group(function () {
     Route::get('/broadcast', [BroadcastController::class, 'create'])->name('broadcast.create');
     Route::post('/broadcast', [BroadcastController::class, 'store'])->name('broadcast.store');
 });

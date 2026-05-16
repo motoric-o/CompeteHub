@@ -10,11 +10,9 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <style>
         :root {
@@ -22,7 +20,7 @@
             --color-primary-dark: var(--chart-5);
             --color-primary-light: var(--chart-1);
             --color-secondary: var(--secondary);
-            --color-accent: var(--chart-4);
+            --color-accent: var(--accent);
             --color-success: var(--chart-5);
             --color-danger: var(--destructive);
             --color-warning: var(--chart-4);
@@ -58,13 +56,13 @@
             padding: 0;
         }
 
-        a { color: var(--primary); text-decoration: none; transition: color var(--transition); }
+        a { color: var(--color-primary); text-decoration: none; transition: color var(--transition); }
         a:hover:not(.btn) { opacity: 0.8; }
 
         .navbar {
             background: rgba(247, 249, 243, 0.92);
             backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--color-border);
             padding: 0 2rem;
             position: sticky;
             top: 0;
@@ -225,112 +223,43 @@
         }
         .form-control:focus { border-color: var(--primary, #4f46e5); box-shadow: 0 0 0 3px rgba(79,70,229,0.12); }
 
-        .text-muted {
-            color: var(--color-text-muted);
-        }
+        .text-muted { color: var(--muted-foreground, #333333); }
+        .text-success { color: var(--chart-5, #22c55e); }
+        .text-danger { color: var(--destructive, #ef4444); }
 
-        .text-success {
-            color: var(--color-success);
-        }
+        .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+        .page-title { font-size: 1.75rem; font-weight: 800; margin: 0; letter-spacing: -0.03em; }
+        .page-subtitle { color: var(--muted-foreground, #333333); font-size: 0.95rem; margin-top: 0.25rem; }
+        .section-title { font-size: 1.1rem; font-weight: 700; color: var(--muted-foreground, #333333); margin-bottom: 1rem; }
 
-        .text-danger {
-            color: var(--color-danger);
-        }
+        .grid { display: grid; gap: 1.5rem; }
+        .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .gap-1 { gap: 0.5rem; }
+        .gap-2 { gap: 1rem; }
+        .mt-1 { margin-top: 0.5rem; }
+        .mt-2 { margin-top: 1rem; }
+        .mb-2 { margin-bottom: 1rem; }
 
-        .mt-1 {
-            margin-top: 0.5rem;
-        }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-in { animation: fadeInUp 0.4s ease-out both; }
 
-        .mt-2 {
-            margin-top: 1rem;
-        }
-
-        .mb-2 {
-            margin-bottom: 1rem;
-        }
-
-        .flex {
-            display: flex;
-        }
-
-        .items-center {
-            align-items: center;
-        }
-
-        .gap-1 {
-            gap: 0.5rem;
-        }
-
-        .gap-2 {
-            gap: 1rem;
-        }
-
-        .grid {
-            display: grid;
-            gap: 1.5rem;
-        }
-
-        .grid-cols-2 {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .grid-cols-3 {
-            grid-template-columns: repeat(3, 1fr);
-        }
-
-        .page-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .page-title {
-            font-size: 1.75rem;
-            font-weight: 800;
-            margin: 0;
-        }
-
-        .page-subtitle {
-            color: var(--color-text-muted);
-            font-size: 0.95rem;
-            margin-top: 0.25rem;
-        }
-
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--color-text-muted);
-            margin-bottom: 1rem;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .animate-in {
-            animation: fadeInUp 0.4s ease-out both;
+        @media (max-width: 768px) {
+            .grid-cols-2, .grid-cols-3 { grid-template-columns: 1fr; }
+            .container-custom { padding: 1rem; }
         }
     </style>
 
     @stack('styles')
 </head>
 
-<body class="font-sans antialiased text-gray-900">
-    <div class="min-h-screen flex flex-col">
+<body>
+    <div style="min-height: 100vh; display: flex; flex-direction: column;">
         <nav class="navbar">
             <div class="navbar-inner">
-                <a href="{{ auth()->check() ? route('dashboard') : route('login') }}" class="navbar-brand">
+                <a href="{{ route('home') }}" class="navbar-brand">
                     CompeteHub
                 </a>
 
@@ -344,7 +273,7 @@
                             </a>
                         </li>
 
-                        @if(auth()->user()->role === 'committee')
+                                        @if(auth()->user()->role === 'committee')
                             <li>
                                 <a href="{{ route('committee.competitions.index') }}"
                                     class="{{ request()->routeIs('committee.competitions.*') || request()->routeIs('committee.form-templates.*') || request()->routeIs('committee.registrations.*') ? 'active' : '' }}"
@@ -393,9 +322,9 @@
                         </li>
                     </ul>
 
-                    <!-- User Dropdown (pure JS) -->
-                    <div style="position: relative;" id="user-dropdown-wrapper-old">
-                        <button onclick="toggleDropdownOld()" class="nav-user" style="cursor: pointer; background: none; border: none; font-family: inherit;">
+                    <!-- User Dropdown (pure JS to avoid Alpine double-load issue) -->
+                    <div style="position: relative;" id="user-dropdown-wrapper">
+                        <button onclick="toggleDropdown()" class="nav-user" style="cursor: pointer; background: none; border: none; font-family: inherit;">
                             <div class="nav-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</div>
                             <div>
                                 <div class="nav-user-name">{{ auth()->user()->name }}</div>
@@ -404,10 +333,10 @@
                             <svg style="width: 16px; height: 16px; color: var(--muted-foreground);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </button>
 
-                        <div id="user-dropdown-menu-old" style="display: none; position: absolute; right: 0; top: calc(100% + 0.5rem); width: 13rem; background: var(--card, #ffffff); border: 1px solid var(--border, #000000); border-radius: var(--radius, 1rem); box-shadow: 0 8px 24px rgba(0,0,0,0.08); padding: 0.25rem 0; z-index: 50;">
+                        <div id="user-dropdown-menu" style="display: none; position: absolute; right: 0; top: calc(100% + 0.5rem); width: 13rem; background: var(--card, #ffffff); border: 1px solid var(--border, #000000); border-radius: var(--radius, 1rem); box-shadow: 0 8px 24px rgba(0,0,0,0.08); padding: 0.25rem 0; z-index: 50;">
                             <a href="{{ route('profile.edit') }}" style="display: block; padding: 0.6rem 1rem; font-size: 0.875rem; color: var(--foreground, #000000); text-decoration: none;"
-                                 onmouseover="this.style.background='var(--muted, #f0f0f0)';" onmouseout="this.style.background='transparent';">
-                                 Profil Saya
+                                onmouseover="this.style.background='var(--muted, #f0f0f0)';" onmouseout="this.style.background='transparent';">
+                                Profil Saya
                             </a>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
@@ -419,13 +348,13 @@
                         </div>
                     </div>
                     <script>
-                        function toggleDropdownOld() {
-                            var menu = document.getElementById('user-dropdown-menu-old');
+                        function toggleDropdown() {
+                            var menu = document.getElementById('user-dropdown-menu');
                             menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
                         }
                         document.addEventListener('click', function(e) {
-                            var wrapper = document.getElementById('user-dropdown-wrapper-old');
-                            var menu = document.getElementById('user-dropdown-menu-old');
+                            var wrapper = document.getElementById('user-dropdown-wrapper');
+                            var menu = document.getElementById('user-dropdown-menu');
                             if (wrapper && !wrapper.contains(e.target)) {
                                 menu.style.display = 'none';
                             }
@@ -433,13 +362,10 @@
                     </script>
                 @else
                     <ul class="navbar-nav">
+                        <li><a href="{{ route('login') }}">Login</a></li>
                         <li>
-                            <a href="{{ route('login') }}" class="{{ request()->routeIs('login') ? 'active' : '' }}">
-                                Login
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('register') }}" class="{{ request()->routeIs('register') ? 'active' : '' }}">
+                            <a href="{{ route('register') }}"
+                                style="background: var(--primary, #4f46e5); color: var(--primary-foreground, #ffffff); padding: 0.5rem 1rem; border-radius: calc(var(--radius, 1rem) - 0.25rem); font-weight: 700;">
                                 Register
                             </a>
                         </li>
@@ -450,17 +376,11 @@
 
         <div class="container-custom" style="padding-bottom: 0;">
             @if(session('success'))
-                <x-alert type="success">
-                    {{ session('success') }}
-                </x-alert>
+                <x-alert type="success">{{ session('success') }}</x-alert>
             @endif
-
             @if(session('error'))
-                <x-alert type="error">
-                    {{ session('error') }}
-                </x-alert>
+                <x-alert type="error">{{ session('error') }}</x-alert>
             @endif
-
             @if($errors->any())
                 <x-alert type="error" title="Terdapat Kesalahan">
                     <ul style="margin-left: 1.5rem; margin-top: 0.25rem;">
@@ -473,20 +393,16 @@
         </div>
 
         @isset($header)
-            <header class="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-10"
-                style="margin-bottom: 2rem;">
-                <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div style="background: rgba(247, 249, 243, 0.8); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border, #000000); padding: 1.25rem 0; margin-bottom: 0;">
+                <div style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
                     {{ $header }}
                 </div>
-            </header>
+            </div>
         @endisset
 
-        <main class="container-custom flex-1 relative">
+        <main class="container-custom" style="flex: 1;">
             @yield('content')
-
-            <div class="relative z-10">
-                {{ $slot ?? '' }}
-            </div>
+            {{ $slot ?? '' }}
         </main>
     </div>
 

@@ -157,7 +157,13 @@ class RegistrationController extends Controller
 
         $path = $facade->generatePDFCertificate(auth()->id(), $competition->id, $data);
 
-        return response()->download(storage_path('app/public/' . $path));
+        $absolutePath = \Illuminate\Support\Facades\Storage::disk('public')->path($path);
+
+        if (!\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+            abort(404, 'Certificate file not found. Please try again.');
+        }
+
+        return response()->download($absolutePath, "Certificate_{$competition->name}_{$registration->id}.pdf");
     }
 
     /**
