@@ -13,7 +13,7 @@
             <label for="email" style="display: block; font-size: 0.875rem; font-weight: 600; color: var(--foreground, #000000); margin-bottom: 0.5rem;">Alamat Email</label>
             <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username"
                 placeholder="anda@email.com" class="form-input"
-                style="width: 100%; padding: 0.75rem 1rem; background: var(--background, #f7f9f3); border: 1px solid var(--border, #000000); border-radius: calc(var(--radius, 1rem) - 0.25rem); font-family: inherit; font-size: 0.9rem; color: var(--foreground, #000000); box-sizing: border-box; outline: none; transition: border-color 0.2s, box-shadow 0.2s;">
+                style="width: 100%; padding: 0.75rem 1rem; background: #ffffff; border: 1px solid var(--border, #000000); border-radius: calc(var(--radius, 1rem) - 0.25rem); font-family: inherit; font-size: 0.9rem; color: var(--foreground, #000000); box-sizing: border-box; outline: none; transition: border-color 0.2s, box-shadow 0.2s;">
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
@@ -21,7 +21,7 @@
             <label for="password" style="display: block; font-size: 0.875rem; font-weight: 600; color: var(--foreground, #000000); margin-bottom: 0.5rem;">Password</label>
             <input id="password" type="password" name="password" required autocomplete="current-password"
                 placeholder="••••••••" class="form-input"
-                style="width: 100%; padding: 0.75rem 1rem; background: var(--background, #f7f9f3); border: 1px solid var(--border, #000000); border-radius: calc(var(--radius, 1rem) - 0.25rem); font-family: inherit; font-size: 0.9rem; color: var(--foreground, #000000); box-sizing: border-box; outline: none; transition: border-color 0.2s, box-shadow 0.2s;">
+                style="width: 100%; padding: 0.75rem 1rem; background: #ffffff; border: 1px solid var(--border, #000000); border-radius: calc(var(--radius, 1rem) - 0.25rem); font-family: inherit; font-size: 0.9rem; color: var(--foreground, #000000); box-sizing: border-box; outline: none; transition: border-color 0.2s, box-shadow 0.2s;">
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
@@ -34,7 +34,7 @@
 
             @if (Route::has('password.request'))
                 <a href="{{ route('password.request') }}"
-                    style="font-size: 0.875rem; font-weight: 600; color: var(--primary, #4f46e5); text-decoration: none; transition: opacity 0.2s;"
+                    style="font-size: 0.875rem; font-weight: 600; color: var(--accent, #f59e0b); text-decoration: none; transition: opacity 0.2s;"
                     onmouseover="this.style.opacity='0.7';" onmouseout="this.style.opacity='1';">
                     Lupa password?
                 </a>
@@ -48,7 +48,7 @@
         <p style="text-align: center; font-size: 0.875rem; color: var(--muted-foreground, #333333); margin: 0;">
             Belum punya akun?
             <a href="{{ route('register') }}"
-                style="font-weight: 700; color: var(--primary, #4f46e5); text-decoration: none;"
+                style="font-weight: 700; color: var(--accent, #f59e0b); text-decoration: none;"
                 onmouseover="this.style.opacity='0.7';" onmouseout="this.style.opacity='1';">
                 Daftar di sini
             </a>
