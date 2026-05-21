@@ -38,6 +38,15 @@
                         @if($bracket->winner_id == $bracket->participant_a)
                             <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded ml-2">Winner</span>
                         @endif
+                        @if($bracket->participant_a && isset($submissions[$bracket->participant_a]))
+                            <div class="text-xs text-gray-500 font-normal mt-1">
+                                Score: {{ floatval($submissions[$bracket->participant_a]->total_score) }} pts
+                            </div>
+                        @elseif($bracket->participant_a)
+                            <div class="text-xs text-gray-400 font-normal mt-1 italic">
+                                Belum ada submisi
+                            </div>
+                        @endif
                     </div>
                     
                     <!-- VS -->
@@ -53,6 +62,15 @@
                         @endif
                         @if(!$bracket->participant_b)
                             <span class="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded">BYE</span>
+                        @endif
+                        @if($bracket->participant_b && isset($submissions[$bracket->participant_b]))
+                            <div class="text-xs text-gray-500 font-normal mt-1">
+                                Score: {{ floatval($submissions[$bracket->participant_b]->total_score) }} pts
+                            </div>
+                        @elseif($bracket->participant_b)
+                            <div class="text-xs text-gray-400 font-normal mt-1 italic">
+                                Belum ada submisi
+                            </div>
                         @endif
                     </div>
                 </div>
