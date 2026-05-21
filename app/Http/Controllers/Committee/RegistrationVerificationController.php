@@ -40,6 +40,7 @@ class RegistrationVerificationController extends Controller
     public function show(Competition $competition, Registration $registration): View
     {
         $this->authorizeCommittee($competition);
+        $this->authorizeRegistration($competition, $registration);
 
         $registration->load(['user', 'team.captain', 'documents', 'payment']);
 
@@ -53,6 +54,8 @@ class RegistrationVerificationController extends Controller
     {
         $this->authorizeCommittee($competition);
 
+        $result = $this->validator->validate($registration);
+        $this->authorizeRegistration($competition, $registration);
         $result = $this->validator->validate($registration);
 
         return redirect()
@@ -106,5 +109,10 @@ class RegistrationVerificationController extends Controller
     private function authorizeCommittee(Competition $competition): void
     {
         abort_unless($competition->user_id === auth()->id(), 403);
+    }
+
+    private function authorizeRegistration(Competition $competition, Registration $registration): void
+    {
+        abort_unless($registration->competition_id === $competition->id, 404);
     }
 }

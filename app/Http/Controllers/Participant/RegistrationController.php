@@ -8,12 +8,20 @@ use App\Models\Registration;
 use App\Models\RegistrationDocument;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class RegistrationController extends Controller
 {
     public function create(Competition $competition): View|RedirectResponse
     {
+
+        $availabilityCheck = $this->checkRegistrationAvailability($competition);
+
+        if ($availabilityCheck) {
+            return $availabilityCheck;
+        }
+
         $existing = Registration::where('competition_id', $competition->id)
             ->where('user_id', auth()->id())
             ->first();
@@ -30,6 +38,12 @@ class RegistrationController extends Controller
 
     public function store(Request $request, Competition $competition): RedirectResponse
     {
+        $availabilityCheck = $this->checkRegistrationAvailability($competition);
+
+        if ($availabilityCheck) {
+            return $availabilityCheck;
+        }
+
         $existing = Registration::where('competition_id', $competition->id)
             ->where('user_id', auth()->id())
             ->first();
@@ -100,6 +114,8 @@ class RegistrationController extends Controller
                     'registration_id' => $registration->id,
                     'document_type' => $type,
                     'file_path' => $path,
+                    'status' => 'pending',
+                    'uploaded_at' => now(),
                 ]);
             }
         }
@@ -146,7 +162,8 @@ class RegistrationController extends Controller
     public function downloadCertificate(Competition $competition, Registration $registration, \App\Services\Facade\NotificationFacade $facade)
     {
         abort_unless($registration->user_id === auth()->id(), 403);
-        
+        abort_unless($registration->competition_id === $competition->id, 404);
+        abort_unless($registration->competition_id === $competition->id, 404);
         // Asumsi sertifikat hanya bisa diunduh jika status registrasi verified
         abort_unless(in_array($registration->status, ['verified', 'payment_ok']), 403, 'Registration not verified.');
 
@@ -177,5 +194,23 @@ class RegistrationController extends Controller
             ->get();
 
         return view('participant.registrations.index', compact('registrations'));
+    }
+
+    private function checkRegistrationAvailability(Competition $competition): ?RedirectResponse
+    {
+        if ($competition->registration_end && now()->isAfter($competition->registration_end)) {
+            return back()->with('error', 'Registration period has ended.');
+        }
+
+        if ($competition->quota) {
+            $count = Registration::where('competition_id', $competition->id)
+                ->whereNotIn('status', ['rejected'])
+                ->count();
+            if ($count >= $competition->quota) {
+                return back()->with('error', 'Registration quota is full.');
+            }
+        }
+
+        return null;
     }
 }

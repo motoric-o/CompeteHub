@@ -11,6 +11,7 @@ class FormTemplateSeeder extends Seeder
     {
         $hackathon = DB::table('competitions')->where('name', 'Hackathon Nasional 2025')->value('id');
         $cp        = DB::table('competitions')->where('name', 'Competitive Programming Cup')->value('id');
+        $uiux      = DB::table('competitions')->where('name', 'UI/UX Design Competition')->value('id');
 
         DB::table('form_templates')->insert([
             [
@@ -29,9 +30,13 @@ class FormTemplateSeeder extends Seeder
                 'competition_id' => $cp,
                 'name'           => 'Formulir CP Cup',
                 'fields'         => json_encode([
-                    ['label' => 'KTP',             'type' => 'file',   'required' => true],
-                    ['label' => 'Kartu Mahasiswa', 'type' => 'file',   'required' => true],
-                    ['label' => 'Codeforces ID',   'type' => 'text',   'required' => true],
+                    ['label' => 'Full Name', 'type' => 'text', 'required' => true],
+                    ['label' => 'Email', 'type' => 'email', 'required' => true],
+                    ['label' => 'Phone Number', 'type' => 'text', 'required' => true],
+                    ['label' => 'University', 'type' => 'text', 'required' => true],
+                    ['label' => 'Previous UI/UX Experience', 'type' => 'textarea', 'required' => false],
+                    ['label' => 'Student Card', 'type' => 'file', 'required' => true],
+                    ['label' => 'Proposal File', 'type' => 'file', 'required' => true],
                 ]),
                 'created_at' => now(),
                 'updated_at' => now(),
