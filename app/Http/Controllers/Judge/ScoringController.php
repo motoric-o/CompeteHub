@@ -53,6 +53,43 @@ class ScoringController extends Controller
     }
 
     /**
+     * Start the scoring queue using Iterator Pattern.
+     */
+    public function queue(Competition $competition, \App\Models\Round $round)
+    {
+        $user = auth()->user();
+
+        $isAssigned = JuryAssignment::where('user_id', $user->id)
+            ->where('competition_id', $competition->id)->exists();
+        if (!$isAssigned) {
+            abort(403, 'You are not assigned to this competition.');
+        }
+
+        // Get submissions that haven't been scored by this judge
+        $unscoredSubmissions = Submission::where('competition_id', $competition->id)
+            ->where('round_id', $round->id)
+            ->whereDoesntHave('scores', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            })
+            ->orderBy('submitted_at', 'asc')
+            ->get();
+
+        $iterator = new \App\Patterns\Iterator\SubmissionQueueIterator($unscoredSubmissions);
+
+        if ($iterator->valid()) {
+            $nextSubmission = $iterator->current();
+            return redirect()->route('judge.submissions.show', [
+                'competition' => $competition->id,
+                'submission' => $nextSubmission->id,
+                'from_queue' => 1
+            ]);
+        }
+
+        return redirect()->route('judge.submissions.round', [$competition, $round])
+            ->with('success', 'Semua submission di ronde ini telah dinilai!');
+    }
+
+    /**
      * Show the scoring form for a specific submission.
      */
     public function show(Competition $competition, Submission $submission)
@@ -104,6 +141,11 @@ class ScoringController extends Controller
             return back()->with('error', $e->getMessage());
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
+        }
+
+        if ($request->has('from_queue')) {
+            return redirect()->route('judge.submissions.queue', [$competition, $submission->round_id])
+                ->with('success', "Nilai {$request->score} berhasil disimpan untuk submission #{$submission->id}!");
         }
 
         return redirect()->route('judge.submissions.round', [$competition, $submission->round_id])

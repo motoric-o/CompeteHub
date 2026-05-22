@@ -96,6 +96,9 @@
 
                     <form action="{{ route('judge.submissions.score', [$competition, $submission]) }}" method="POST">
                         @csrf
+                        @if(request('from_queue'))
+                            <input type="hidden" name="from_queue" value="1">
+                        @endif
 
                         <div class="mb-5">
                             <x-input-label for="score" :value="__('Nilai (0 - 100)')" class="text-gray-700 font-semibold" />

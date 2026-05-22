@@ -129,6 +129,16 @@
             </div>
         </nav>
 
+        @auth
+            @isset($userAccess)
+                <div class="bg-indigo-50 border-b border-indigo-100 px-4 py-2 text-sm text-center">
+                    <span class="font-semibold text-indigo-700">Role: {{ ucfirst($userAccess->role) }}</span>
+                    <span class="mx-2 text-indigo-300">|</span>
+                    <span class="text-indigo-600">Akses: {{ implode(', ', $userAccess->getAvailableAccess()) }}</span>
+                </div>
+            @endisset
+        @endauth
+
         <div class="container-custom" style="padding-bottom: 0;">
             @if(session('success'))
                 <x-alert type="success">
