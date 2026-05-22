@@ -151,8 +151,9 @@ Route::middleware(['auth', 'verified', 'role:participant'])
         Route::post('/competitions/{competition}/register', [RegistrationController::class, 'store'])
             ->name('registrations.store');
 
-
-
+        // AJAX pre-check endpoint — validates form completeness before final submit
+        Route::post('/competitions/{competition}/register/pre-check', [RegistrationController::class, 'preCheck'])
+            ->name('registrations.pre-check');
         Route::get('/competitions/{competition}/registrations/{registration}', [RegistrationController::class, 'show'])
             ->name('registrations.show');
 

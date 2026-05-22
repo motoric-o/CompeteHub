@@ -152,6 +152,38 @@ class RegistrationController extends Controller
         return view('participant.registrations.show', compact('competition', 'registration', 'nextAction'));
     }
 
+    /**
+     * AJAX pre-check — validate form completeness before final submission.
+     * Returns JSON with list of issues. Empty issues = ready to submit.
+     */
+    public function preCheck(Request $request, Competition $competition): \Illuminate\Http\JsonResponse
+    {
+        // Quick eligibility gate
+        $eligibility = $this->registrationService->checkEligibility($competition, auth()->id());
+        if (! $eligibility['eligible'] && $eligibility['reason'] !== null) {
+            return response()->json([
+                'eligible' => false,
+                'reason'   => $eligibility['reason'],
+                'issues'   => [],
+            ], 422);
+        }
+
+        /** @var \App\Services\Registration\RegistrationPreCheckService $preCheck */
+        $preCheck = app(\App\Services\Registration\RegistrationPreCheckService::class);
+
+        $issues = $preCheck->check(
+            competition:  $competition,
+            formData:     $request->input('form_data', []),
+            uploadedFiles: $request->hasFile('documents') ? $request->file('documents') : [],
+            paymentProof: $request->file('payment_proof'),
+        );
+
+        return response()->json([
+            'eligible' => true,
+            'issues'   => array_map(fn ($i) => $i->toArray(), $issues),
+            'ready'    => count($issues) === 0,
+        ]);
+    }
 
     /**
      * Download Certificate.

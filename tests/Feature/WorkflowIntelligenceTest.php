@@ -3,14 +3,17 @@
 namespace Tests\Feature;
 
 use App\Models\Competition;
+use App\Models\FormTemplate;
 use App\Models\Payment;
 use App\Models\Registration;
 use App\Models\RegistrationDocument;
 use App\Models\ScoringType;
 use App\Models\User;
 use App\Services\Dashboard\CommandCenterService;
+use App\Services\Registration\RegistrationPreCheckService;
 use App\Services\Template\TemplateQualityAnalyzer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
@@ -104,6 +107,64 @@ class WorkflowIntelligenceTest extends TestCase
     }
 
     /**
+     * Test RegistrationPreCheckService
+     */
+    public function test_registration_pre_check_service(): void
+    {
+        $preCheckService = new RegistrationPreCheckService();
+
+        // Set up template fields
+        FormTemplate::create([
+            'competition_id' => $this->competition->id,
+            'name' => 'Registration Form Template',
+            'fields' => [
+                ['label' => 'Full Name', 'type' => 'text', 'required' => true],
+                ['label' => 'KTP Scan', 'type' => 'file', 'required' => true],
+                ['label' => 'Agree to Terms', 'type' => 'checkbox', 'required' => true],
+            ],
+        ]);
+
+        // 1. Missing required text field and checkbox and payment proof
+        $formData = [
+            'Full Name' => '',
+            'Agree to Terms' => false,
+        ];
+        $uploadedFiles = [];
+        $paymentProof = null;
+
+        $issues = $preCheckService->check($this->competition, $formData, $uploadedFiles, $paymentProof);
+
+        $this->assertCount(4, $issues); // Full Name (missing), KTP Scan (missing), Agree to Terms (missing), Payment Proof (missing)
+        
+        $severities = collect($issues)->pluck('severity')->toArray();
+        $fields = collect($issues)->pluck('field')->toArray();
+
+        $this->assertContains('Full Name', $fields);
+        $this->assertContains('KTP Scan', $fields);
+        $this->assertContains('Agree to Terms', $fields);
+        $this->assertContains('payment_proof', $fields);
+        $this->assertEquals(['missing', 'missing', 'missing', 'missing'], $severities);
+
+        // 2. Invalid file format
+        $invalidFile = UploadedFile::fake()->create('ktp.txt', 100);
+        $uploadedFiles = [
+            'KTP Scan' => $invalidFile,
+        ];
+        $formData = [
+            'Full Name' => 'John Doe',
+            'Agree to Terms' => true,
+        ];
+        $paymentProof = UploadedFile::fake()->create('proof.pdf', 200);
+
+        $issues = $preCheckService->check($this->competition, $formData, $uploadedFiles, $paymentProof);
+
+        $this->assertCount(1, $issues);
+        $this->assertEquals('KTP Scan', $issues[0]->field);
+        $this->assertEquals('invalid', $issues[0]->severity);
+        $this->assertStringContainsString('Format file \'KTP Scan\' tidak didukung', $issues[0]->message);
+    }
+
+    /**
      * Test CommandCenterService
      */
     public function test_command_center_service(): void
@@ -181,5 +242,38 @@ class WorkflowIntelligenceTest extends TestCase
         $response->assertViewHas('dashboard');
         $response->assertSee('Command Center');
         $response->assertSee('Web Development Competition 2026');
+    }
+
+    /**
+     * Test AJAX Pre-check Controller Endpoint
+     */
+    public function test_participant_ajax_pre_check(): void
+    {
+        FormTemplate::create([
+            'competition_id' => $this->competition->id,
+            'name' => 'Registration Form Template',
+            'fields' => [
+                ['label' => 'Full Name', 'type' => 'text', 'required' => true],
+            ],
+        ]);
+
+        $response = $this->actingAs($this->participant)
+            ->postJson(route('participant.registrations.pre-check', $this->competition), [
+                'form_data' => [
+                    'Full Name' => '',
+                ],
+            ]);
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure([
+            'ready',
+            'issues' => [
+                '*' => ['field', 'message', 'severity'],
+            ],
+        ]);
+
+        $data = $response->json();
+        $this->assertFalse($data['ready']);
+        $this->assertCount(2, $data['issues']); // Full Name missing, payment proof missing
     }
 }
