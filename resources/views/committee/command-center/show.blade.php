@@ -6,7 +6,7 @@
                 <p class="text-sm text-muted-foreground mt-1">{{ $competition->name }}</p>
             </div>
             <div class="flex items-center gap-3">
-                <a href="{{ Route::has('committee.notification-log.index') ? route('committee.notification-log.index', $competition) : '#' }}" class="btn btn-secondary text-sm">
+                <a href="{{ route('committee.notification-log.index', $competition) }}" class="btn btn-secondary text-sm">
                     📋 Log Notifikasi
                 </a>
                 <a href="{{ route('committee.registrations.index', $competition) }}" class="btn btn-secondary text-sm">
@@ -132,7 +132,7 @@
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-bold">⏳ Pendaftaran Baru ({{ $dashboard->newRegistrationsCount }})</h3>
                 @if($dashboard->newRegistrationsCount > 1)
-                <form method="POST" action="{{ Route::has('committee.registrations.bulk-validate') ? route('committee.registrations.bulk-validate', $competition) : '#' }}"
+                <form method="POST" action="{{ route('committee.registrations.bulk-validate', $competition) }}"
                       id="bulk-validate-form">
                     @csrf
                     @foreach($dashboard->newRegistrations as $reg)

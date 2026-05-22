@@ -2,10 +2,10 @@
 
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\Committee\CommandCenterController;
-use App\Http\Controllers\Committee\CompetitionController as CommitteeCompetitionController;
-use App\Http\Controllers\Committee\FormTemplateController;
 use App\Http\Controllers\Committee\ReviewActionController;
 use App\Http\Controllers\Committee\NotificationLogController;
+use App\Http\Controllers\Committee\CompetitionController as CommitteeCompetitionController;
+use App\Http\Controllers\Committee\FormTemplateController;
 
 use App\Http\Controllers\Committee\RegistrationVerificationController;
 use App\Http\Controllers\Participant\CompetitionController as ParticipantCompetitionController;
@@ -79,6 +79,7 @@ Route::middleware(['auth', 'verified', 'role:committee'])
 
         Route::post('/competitions/{competition}/form-templates/preview', [FormTemplateController::class, 'preview'])
             ->name('form-templates.preview');
+
         Route::get('/competitions/{competition}/registrations', [RegistrationVerificationController::class, 'index'])
             ->name('registrations.index');
 
@@ -97,6 +98,7 @@ Route::middleware(['auth', 'verified', 'role:committee'])
         Route::resource('management/competitions', CommitteeCompetitionController::class)
             ->names('management.competitions');
 
+        // ── Feature 1: Competition Command Center
         Route::get('/competitions/{competition}/command-center', [CommandCenterController::class, 'show'])
             ->name('command-center.show');
 
@@ -116,6 +118,7 @@ Route::middleware(['auth', 'verified', 'role:committee'])
 
         Route::post('/competitions/{competition}/registrations/bulk-validate', [ReviewActionController::class, 'bulkValidate'])
             ->name('registrations.bulk-validate');
+
         // Rounds
         Route::resource('competitions.rounds', \App\Http\Controllers\Committee\RoundController::class)
             ->names('rounds');
@@ -169,6 +172,7 @@ Route::middleware(['auth', 'verified', 'role:participant'])
         // AJAX pre-check endpoint — validates form completeness before final submit
         Route::post('/competitions/{competition}/register/pre-check', [RegistrationController::class, 'preCheck'])
             ->name('registrations.pre-check');
+
         Route::get('/competitions/{competition}/registrations/{registration}', [RegistrationController::class, 'show'])
             ->name('registrations.show');
 
