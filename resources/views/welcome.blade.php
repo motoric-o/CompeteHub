@@ -108,13 +108,13 @@
                             <p class="text-sm text-muted-foreground line-clamp-3 mb-6 flex-grow">{{ $competition->description }}</p>
                             
                             @if($competition->isRegistrationOpen() && $competition->hasAvailableQuota())
-                                <a href="{{ route('participant.registrations.create', $competition->id) }}" class="btn btn-primary w-full py-3 shadow-[2px_2px_0px_0px_var(--foreground)] hover:shadow-[1px_1px_0px_0px_var(--foreground)] hover:translate-y-[1px]">
-                                    Daftar Sekarang
+                                <a href="{{ route('competitions.show', $competition->id) }}" class="btn w-full py-3 border-2 border-black bg-white text-black font-bold uppercase hover:bg-black hover:text-white transition-colors shadow-[2px_2px_0px_0px_var(--foreground)]">
+                                    Lihat Detail & Daftar
                                 </a>
                             @else
-                                <button disabled class="btn w-full py-3 bg-muted text-muted-foreground border-border cursor-not-allowed">
+                                <a href="{{ route('competitions.show', $competition->id) }}" class="btn w-full py-3 bg-muted text-muted-foreground border-border font-bold uppercase cursor-not-allowed">
                                     Pendaftaran Ditutup
-                                </button>
+                                </a>
                             @endif
                         </div>
                     </div>

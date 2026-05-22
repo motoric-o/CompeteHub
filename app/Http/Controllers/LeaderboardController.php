@@ -43,8 +43,12 @@ class LeaderboardController extends Controller
         $query = LeaderboardEntry::where('competition_id', $competition->id)
             ->with(['user:id,name,avatar_url', 'team:id,name']);
 
+        $scoringTypeName = 'Global';
+
         if ($roundId) {
             $query->where('round_id', $roundId);
+            $selectedRound = \App\Models\Round::with('scoringType')->find($roundId);
+            $scoringTypeName = $selectedRound->scoringType->name ?? 'Manual';
         } else {
             $query->whereNull('round_id');
         }
@@ -76,8 +80,9 @@ class LeaderboardController extends Controller
         });
 
         return response()->json([
-            'entries'   => $entries,
-            'timestamp' => now()->toIso8601String(),
+            'entries'      => $entries,
+            'scoring_type' => $scoringTypeName,
+            'timestamp'    => now()->toIso8601String(),
         ]);
     }
 }

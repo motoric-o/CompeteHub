@@ -7,16 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 class ScoringCriterion extends Model
 {
     protected $fillable = [
-        'competition_id',
+        'round_id',
         'name',
         'description',
         'max_score',
         'weight'
     ];
 
-    public function competition()
+    public function round()
     {
-        return $this->belongsTo(Competition::class);
+        return $this->belongsTo(Round::class);
     }
 
     public function criterionScores()

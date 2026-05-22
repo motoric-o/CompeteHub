@@ -13,6 +13,7 @@ class ScoringTypeSeeder extends Seeder
         $types = [
             'Time Based',
             'Judge Score',
+            'Community Voting',
         ];
 
         foreach ($types as $type) {

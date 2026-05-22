@@ -9,11 +9,11 @@ class CriterionScoreSeeder extends Seeder
 {
     public function run(): void
     {
-        $hackathonId = DB::table('competitions')->where('name', 'Hackathon Nasional 2025')->value('id');
+        $hackathonSemiFinal = DB::table('rounds')->where('name', 'Semi Final')->value('id');
         
-        $critInnovation = DB::table('scoring_criteria')->where('competition_id', $hackathonId)->where('name', 'Innovation & Creativity')->value('id');
-        $critTech = DB::table('scoring_criteria')->where('competition_id', $hackathonId)->where('name', 'Technical Implementation')->value('id');
-        $critBiz = DB::table('scoring_criteria')->where('competition_id', $hackathonId)->where('name', 'Business Potential')->value('id');
+        $critInnovation = DB::table('scoring_criteria')->where('round_id', $hackathonSemiFinal)->where('name', 'Innovation & Creativity')->value('id');
+        $critTech = DB::table('scoring_criteria')->where('round_id', $hackathonSemiFinal)->where('name', 'Technical Implementation')->value('id');
+        $critBiz = DB::table('scoring_criteria')->where('round_id', $hackathonSemiFinal)->where('name', 'Business Potential')->value('id');
 
         $submAlpha = DB::table('submissions')->where('file_path', 'submissions/alpha_penyisihan.zip')->value('id');
         $jeryko = DB::table('users')->where('email', 'jeryko@competehub.com')->value('id');

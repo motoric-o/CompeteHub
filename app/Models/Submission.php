@@ -13,7 +13,7 @@ class Submission extends Model
 
     protected $fillable = [
         'competition_id', 'round_id', 'user_id', 'team_id',
-        'file_path', 'file_type', 'file_size',
+        'file_path', 'submission_url', 'file_type', 'file_size',
         'submitted_at', 'final_score', 'status',
         'revision_count', 'time_bonus',
     ];
@@ -59,5 +59,10 @@ class Submission extends Model
     public function scores(): HasMany
     {
         return $this->hasMany(Score::class);
+    }
+
+    public function votes(): HasMany
+    {
+        return $this->hasMany(SubmissionVote::class);
     }
 }

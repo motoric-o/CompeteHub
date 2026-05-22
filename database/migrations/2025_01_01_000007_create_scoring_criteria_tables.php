@@ -8,10 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Criteria penilaian per ronde (sebelumnya per kompetisi)
         Schema::create('scoring_criteria', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('competition_id')->constrained()->cascadeOnDelete();
-            $table->string('name', 200);
+            $table->foreignId('round_id')->constrained()->cascadeOnDelete();
+            $table->string('name', 100);
             $table->text('description')->nullable();
             $table->integer('max_score')->default(100);
             $table->decimal('weight', 5, 2)->default(1.0);

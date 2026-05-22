@@ -9,6 +9,7 @@ class Round extends Model
 {
     protected $fillable = [
         'competition_id',
+        'scoring_type_id',
         'name',
         'round_order',
         'start_date',
@@ -21,6 +22,11 @@ class Round extends Model
         return $this->belongsTo(Competition::class);
     }
 
+    public function scoringType(): BelongsTo
+    {
+        return $this->belongsTo(ScoringType::class);
+    }
+
     public function brackets()
     {
         return $this->hasMany(Bracket::class);
@@ -29,6 +35,11 @@ class Round extends Model
     public function submissions()
     {
         return $this->hasMany(Submission::class);
+    }
+
+    public function scoringCriteria()
+    {
+        return $this->hasMany(ScoringCriterion::class);
     }
 
     protected function casts(): array

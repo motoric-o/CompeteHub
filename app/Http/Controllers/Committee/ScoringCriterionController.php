@@ -29,7 +29,11 @@ class ScoringCriterionController extends Controller
             abort(403);
         }
 
-        return view('committee.competitions.scoring-criteria.create', compact('competition'));
+        $rounds = $competition->rounds()->whereHas('scoringType', function($q) {
+            $q->where('name', 'Judge Score');
+        })->get();
+
+        return view('committee.competitions.scoring-criteria.create', compact('competition', 'rounds'));
     }
 
     public function store(Request $request, Competition $competition): RedirectResponse
@@ -39,13 +43,14 @@ class ScoringCriterionController extends Controller
         }
 
         $validated = $request->validate([
+            'round_id' => 'required|exists:rounds,id',
             'name' => 'required|string|max:200',
             'description' => 'nullable|string',
             'max_score' => 'required|integer|min:1',
             'weight' => 'required|numeric|min:0.01',
         ]);
 
-        $competition->scoringCriteria()->create($validated);
+        ScoringCriterion::create($validated);
 
         return redirect()->route('committee.scoring-criteria.index', $competition)
             ->with('success', 'Kriteria penilaian berhasil ditambahkan.');
@@ -53,20 +58,25 @@ class ScoringCriterionController extends Controller
 
     public function edit(Competition $competition, ScoringCriterion $scoringCriterion): View
     {
-        if ($competition->user_id !== auth()->id() || $scoringCriterion->competition_id !== $competition->id) {
+        if ($competition->user_id !== auth()->id() || $scoringCriterion->round->competition_id !== $competition->id) {
             abort(403);
         }
 
-        return view('committee.competitions.scoring-criteria.edit', compact('competition', 'scoringCriterion'));
+        $rounds = $competition->rounds()->whereHas('scoringType', function($q) {
+            $q->where('name', 'Judge Score');
+        })->get();
+
+        return view('committee.competitions.scoring-criteria.edit', compact('competition', 'scoringCriterion', 'rounds'));
     }
 
     public function update(Request $request, Competition $competition, ScoringCriterion $scoringCriterion): RedirectResponse
     {
-        if ($competition->user_id !== auth()->id() || $scoringCriterion->competition_id !== $competition->id) {
+        if ($competition->user_id !== auth()->id() || $scoringCriterion->round->competition_id !== $competition->id) {
             abort(403);
         }
 
         $validated = $request->validate([
+            'round_id' => 'required|exists:rounds,id',
             'name' => 'required|string|max:200',
             'description' => 'nullable|string',
             'max_score' => 'required|integer|min:1',
@@ -81,7 +91,7 @@ class ScoringCriterionController extends Controller
 
     public function destroy(Competition $competition, ScoringCriterion $scoringCriterion): RedirectResponse
     {
-        if ($competition->user_id !== auth()->id() || $scoringCriterion->competition_id !== $competition->id) {
+        if ($competition->user_id !== auth()->id() || $scoringCriterion->round->competition_id !== $competition->id) {
             abort(403);
         }
 

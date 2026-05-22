@@ -99,9 +99,18 @@ class RegistrationController extends Controller
 
         $request->validate($rules);
 
+        $teamId = null;
+        if ($competition->isTeamBased()) {
+            $team = auth()->user()->captainedTeams()->where('competition_id', $competition->id)->first();
+            if ($team) {
+                $teamId = $team->id;
+            }
+        }
+
         $registration = Registration::create([
             'competition_id' => $competition->id,
-            'user_id' => auth()->id(),
+            'user_id' => $teamId ? null : auth()->id(),
+            'team_id' => $teamId,
             'form_data' => $request->input('form_data', []),
             'status' => 'pending',
         ]);
@@ -188,7 +197,17 @@ class RegistrationController extends Controller
      */
     public function index(): View
     {
-        $registrations = Registration::where('user_id', auth()->id())
+        $user = auth()->user();
+        $teamIds = collect($user->teams)->pluck('id')->toArray();
+        $captainedTeamIds = $user->captainedTeams()->pluck('id')->toArray();
+        $allTeamIds = array_unique(array_merge($teamIds, $captainedTeamIds));
+
+        $registrations = Registration::where(function($query) use ($user, $allTeamIds) {
+                $query->where('user_id', $user->id);
+                if (!empty($allTeamIds)) {
+                    $query->orWhereIn('team_id', $allTeamIds);
+                }
+            })
             ->with('competition')
             ->latest()
             ->get();

@@ -37,7 +37,8 @@ return new class extends Migration
             $table->foreignId('round_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->nullable()->constrained()->cascadeOnDelete();   // individu
             $table->foreignId('team_id')->nullable()->constrained()->cascadeOnDelete();   // tim
-            $table->string('file_path', 255);
+            $table->string('file_path', 255)->nullable();
+            $table->string('submission_url', 500)->nullable();
             $table->string('file_type', 50)->nullable();
             $table->unsignedBigInteger('file_size')->nullable();
             $table->timestamp('submitted_at')->useCurrent();   // JANGAN pernah diupdate!
@@ -58,10 +59,21 @@ return new class extends Migration
             $table->timestamp('updated_at')->useCurrent();
             $table->unique(['submission_id', 'user_id']);   // 1 juri 1x per submisi
         });
+
+        // Submission Votes — tabel untuk community voting
+        Schema::create('submission_votes', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('submission_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->timestamps();
+
+            $table->unique(['submission_id', 'user_id']); // 1 user 1 vote per submission
+        });
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('submission_votes');
         Schema::dropIfExists('scores');
         Schema::dropIfExists('submissions');
         Schema::dropIfExists('brackets');

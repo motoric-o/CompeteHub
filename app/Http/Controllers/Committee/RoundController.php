@@ -19,12 +19,14 @@ class RoundController extends Controller
 
     public function create(Competition $competition): View
     {
-        return view('committee.rounds.create', compact('competition'));
+        $scoringTypes = \App\Models\ScoringType::all();
+        return view('committee.rounds.create', compact('competition', 'scoringTypes'));
     }
 
     public function store(Request $request, Competition $competition): RedirectResponse
     {
         $validated = $request->validate([
+            'scoring_type_id' => 'required|exists:scoring_types,id',
             'name' => 'required|string|max:100',
             'round_order' => 'required|integer|min:1',
             'start_date' => 'nullable|date',
@@ -64,12 +66,14 @@ class RoundController extends Controller
 
     public function edit(Competition $competition, Round $round): View
     {
-        return view('committee.rounds.edit', compact('competition', 'round'));
+        $scoringTypes = \App\Models\ScoringType::all();
+        return view('committee.rounds.edit', compact('competition', 'round', 'scoringTypes'));
     }
 
     public function update(Request $request, Competition $competition, Round $round): RedirectResponse
     {
         $validated = $request->validate([
+            'scoring_type_id' => 'required|exists:scoring_types,id',
             'name' => 'required|string|max:100',
             'round_order' => 'required|integer|min:1',
             'start_date' => 'nullable|date',
@@ -89,5 +93,22 @@ class RoundController extends Controller
 
         return redirect()->route('committee.rounds.index', $competition)
                          ->with('success', 'Round deleted successfully.');
+    }
+
+    public function completeAndNext(Competition $competition, Round $round): RedirectResponse
+    {
+        $round->update(['status' => 'finished']);
+
+        $nextRound = $competition->rounds()
+            ->where('round_order', '>', $round->round_order)
+            ->orderBy('round_order', 'asc')
+            ->first();
+
+        if ($nextRound) {
+            $nextRound->update(['status' => 'active']);
+            return back()->with('success', "Babak '{$round->name}' telah ditutup. Babak '{$nextRound->name}' sekarang aktif.");
+        }
+
+        return back()->with('success', "Babak '{$round->name}' telah ditutup. Ini adalah babak terakhir.");
     }
 }

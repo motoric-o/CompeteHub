@@ -35,16 +35,6 @@
                 </select>
             </div>
 
-            <div class="form-group">
-                <label for="scoring_type_id" class="form-label">Metode Penilaian</label>
-                <select name="scoring_type_id" id="scoring_type_id" class="form-control" required>
-                    @foreach($scoringTypes as $st)
-                        <option value="{{ $st->id }}" {{ old('scoring_type_id') == $st->id ? 'selected' : '' }}>
-                            {{ $st->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
 
             <div class="form-group">
                 <label for="registration_fee" class="form-label">Biaya Pendaftaran (Rp)</label>
@@ -95,6 +85,21 @@
                     <option value="draft" {{ old('status') == 'draft' ? 'selected' : '' }}>Draft</option>
                     <option value="open" {{ old('status') == 'open' ? 'selected' : '' }}>Langsung Buka</option>
                 </select>
+            </div>
+
+
+            <div class="form-group" style="grid-column: span 2;">
+                <label class="form-label">Tipe File Submisi yang Diizinkan</label>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    @php $oldTypes = old('allowed_file_types', ['pdf', 'zip', 'mp4']); @endphp
+                    @foreach(['pdf', 'zip', 'mp4', 'png', 'jpg', 'fig', 'csv'] as $ext)
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input type="checkbox" name="allowed_file_types[]" id="ext_{{ $ext }}" value="{{ $ext }}" {{ in_array($ext, $oldTypes) ? 'checked' : '' }}>
+                        <label for="ext_{{ $ext }}" style="margin-bottom: 0;">.{{ strtoupper($ext) }}</label>
+                    </div>
+                    @endforeach
+                </div>
+                <small class="text-gray-500">Selain file, peserta juga bisa mengirim URL.</small>
             </div>
         </div>
 

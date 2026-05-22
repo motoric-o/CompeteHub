@@ -30,6 +30,19 @@
                 @error('round_order') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
             </div>
 
+            <div class="form-group mb-4">
+                <label for="scoring_type_id" class="block text-sm font-medium text-gray-700 mb-1">Metode Penilaian</label>
+                <select name="scoring_type_id" id="scoring_type_id" class="form-input w-full" required>
+                    <option value="">-- Pilih Metode Penilaian --</option>
+                    @foreach($scoringTypes as $st)
+                        <option value="{{ $st->id }}" {{ old('scoring_type_id') == $st->id ? 'selected' : '' }}>
+                            {{ $st->name }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('scoring_type_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+            </div>
+
             <div class="grid grid-cols-2 gap-4 mb-4">
                 <div class="form-group">
                     <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Mulai</label>

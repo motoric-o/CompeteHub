@@ -69,7 +69,10 @@
                         <div class="mt-8 pt-6 border-t border-gray-200">
                             <h4 class="font-semibold text-gray-700 mb-4">Competition Actions</h4>
                             <p class="text-sm text-gray-600 mb-4">Your registration is verified. You can now access the competition rounds, upload your submissions, or download your certificate of participation.</p>
-                            <div class="flex space-x-4">
+                            <div class="flex flex-wrap gap-4 mt-4">
+                                <a href="{{ route('competitions.show', $competition) }}" class="inline-flex items-center px-4 py-2 bg-yellow-400 border-2 border-black rounded-md font-bold text-black uppercase tracking-widest hover:bg-yellow-500 hover:shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all">
+                                    View Competition Details & Gallery
+                                </a>
                                 <a href="{{ route('participant.submissions.index', $competition) }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150">
                                     View Submissions
                                 </a>

@@ -13,9 +13,6 @@ class CompetitionSeeder extends Seeder
         $committee1 = DB::table('users')->where('email', 'valentino@competehub.com')->value('id');
         $committee2 = DB::table('users')->where('email', 'felicia@competehub.com')->value('id');
 
-        $judgeScoreId = DB::table('scoring_types')->where('name', 'Judge Score')->value('id');
-        $timeBasedId = DB::table('scoring_types')->where('name', 'Time Based')->value('id');
-
         DB::table('competitions')->insert([
             // Lomba 1: Hackathon (team, judge_score) — JudgeScoreStrategy
             [
@@ -24,7 +21,6 @@ class CompetitionSeeder extends Seeder
                 'name'               => 'Hackathon Nasional 2025',
                 'description'        => 'Kompetisi hackathon tingkat nasional untuk mahasiswa.',
                 'type'               => 'team',
-                'scoring_type_id'    => $judgeScoreId,
                 'registration_fee'   => 50000,
                 'quota'              => 20,
                 'start_date'         => '2025-06-01',
@@ -42,7 +38,6 @@ class CompetitionSeeder extends Seeder
                 'name'               => 'Competitive Programming Cup',
                 'description'        => 'Lomba pemrograman kompetitif perorangan, skor berdasarkan kecepatan.',
                 'type'               => 'individual',
-                'scoring_type_id'    => $timeBasedId,
                 'registration_fee'   => 0,
                 'quota'              => 50,
                 'start_date'         => '2026-05-10',
@@ -60,7 +55,6 @@ class CompetitionSeeder extends Seeder
                 'name'               => 'UI/UX Design Competition',
                 'description'        => 'Kompetisi desain UI/UX untuk tim mahasiswa.',
                 'type'               => 'team',
-                'scoring_type_id'    => $judgeScoreId,
                 'registration_fee'   => 75000,
                 'quota'              => 15,
                 'start_date'         => '2025-08-01',

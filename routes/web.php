@@ -12,6 +12,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BroadcastController;
 use App\Http\Controllers\Judge\ScoringController;
 use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\PublicCompetitionController;
 
 use App\Models\Competition;
 
@@ -19,6 +20,8 @@ Route::get('/', function () {
     $competitions = Competition::where('status', 'open')->get();
     return view('welcome', compact('competitions'));
 })->name('home');
+
+Route::get('/competitions/{competition}', [PublicCompetitionController::class, 'show'])->name('competitions.show');
 
 
 
@@ -94,6 +97,8 @@ Route::middleware(['auth', 'verified', 'role:committee'])
         // Rounds
         Route::resource('competitions.rounds', \App\Http\Controllers\Committee\RoundController::class)
             ->names('rounds');
+        Route::post('competitions/{competition}/rounds/{round}/complete-and-next', [\App\Http\Controllers\Committee\RoundController::class, 'completeAndNext'])
+            ->name('rounds.complete-and-next');
 
         // Brackets
         Route::post('competitions/{competition}/rounds/{round}/brackets/auto-generate', [\App\Http\Controllers\Committee\BracketController::class, 'autoGenerate'])
@@ -141,20 +146,16 @@ Route::middleware(['auth', 'verified', 'role:participant'])
         Route::get('/competitions', [ParticipantCompetitionController::class, 'index'])
             ->name('competitions.index');
 
-        Route::get('/registrations', [RegistrationController::class, 'index'])
-            ->name('registrations.index');
+        // Registrations
+        Route::get('/registrations', [Participant\RegistrationController::class, 'index'])->name('registrations.index');
+        Route::get('/competitions/{competition}/register', [Participant\RegistrationController::class, 'create'])->name('registrations.create');
+        Route::post('/competitions/{competition}/register', [Participant\RegistrationController::class, 'store'])->name('registrations.store');
+        Route::get('/competitions/{competition}/registrations/{registration}', [Participant\RegistrationController::class, 'show'])->name('registrations.show');
+        Route::get('/competitions/{competition}/registrations/{registration}/certificate', [Participant\RegistrationController::class, 'downloadCertificate'])->name('registrations.download-certificate');
 
-        Route::get('/competitions/{competition}/register', [RegistrationController::class, 'create'])
-            ->name('registrations.create');
-
-        Route::post('/competitions/{competition}/register', [RegistrationController::class, 'store'])
-            ->name('registrations.store');
-
-        Route::get('/competitions/{competition}/registrations/{registration}', [RegistrationController::class, 'show'])
-            ->name('registrations.show');
-
-        Route::get('/competitions/{competition}/registrations/{registration}/certificate', [RegistrationController::class, 'downloadCertificate'])
-            ->name('registrations.certificate');
+        // My Competitions Hub
+        Route::get('/my-competitions', [\App\Http\Controllers\Participant\MyCompetitionController::class, 'index'])->name('my-competitions.index');
+        Route::get('/my-competitions/{competition}', [\App\Http\Controllers\Participant\MyCompetitionController::class, 'show'])->name('my-competitions.show');
 
         Route::get('/competitions/{competition}/submissions', [SubmissionController::class, 'index'])
             ->name('submissions.index');
@@ -183,6 +184,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/leaderboards', [LeaderboardController::class, 'list'])->name('leaderboards.list');
     Route::get('/competitions/{competition}/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard.index');
     Route::get('/api/competitions/{competition}/leaderboard', [LeaderboardController::class, 'apiData'])->name('leaderboard.api');
+});
+
+// ── Community Voting
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/community/galleries', [\App\Http\Controllers\Community\GalleryController::class, 'list'])
+        ->name('community.gallery.index');
+    Route::get('/community/competitions/{competition}/rounds/{round}/gallery', [\App\Http\Controllers\Community\GalleryController::class, 'index'])
+        ->name('community.gallery');
+    Route::post('/community/submissions/{submission}/vote', [\App\Http\Controllers\Community\VotingController::class, 'toggle'])
+        ->name('community.vote.toggle');
 });
 
 require __DIR__ . '/auth.php';

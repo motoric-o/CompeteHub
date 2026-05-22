@@ -32,8 +32,8 @@
                                 @endif
                             </div>
 
-                            <a href="{{ route('participant.registrations.create', $competition) }}" class="block w-full text-center bg-gray-900 hover:bg-gray-800 text-white font-semibold py-3 rounded-xl transition-colors">
-                                Register Now
+                            <a href="{{ route('competitions.show', $competition) }}" class="block w-full text-center bg-gray-900 hover:bg-gray-800 text-white font-semibold py-3 rounded-xl transition-colors">
+                                View Details & Register
                             </a>
                         </div>
                     </div>

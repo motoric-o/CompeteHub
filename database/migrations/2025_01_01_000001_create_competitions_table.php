@@ -16,7 +16,6 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->longText('rules')->nullable();
             $table->enum('type', ['individual', 'team']);
-            $table->foreignId('scoring_type_id')->constrained()->restrictOnDelete();
             $table->decimal('time_scoring_threshold', 10, 2)->nullable();
             $table->decimal('registration_fee', 12, 2)->default(0);
             $table->integer('quota')->nullable();
@@ -33,6 +32,7 @@ return new class extends Migration
         Schema::create('rounds', function (Blueprint $table) {
             $table->id();
             $table->foreignId('competition_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('scoring_type_id')->nullable()->constrained()->restrictOnDelete();
             $table->string('name', 100);
             $table->integer('round_order')->default(1);
             $table->timestamp('start_date')->nullable();

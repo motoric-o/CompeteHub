@@ -132,7 +132,17 @@ class SubmissionController extends Controller
         }
 
         $file = $request->file('submission_file');
-        $filePath = $file->store('submissions/' . $competition->id . '/' . $round->id, 'public');
+        $url = $request->input('submission_url');
+        
+        $filePath = null;
+        $fileType = null;
+        $fileSize = null;
+
+        if ($file) {
+            $filePath = $file->store('submissions/' . $competition->id . '/' . $round->id, 'public');
+            $fileType = $file->getClientOriginalExtension();
+            $fileSize = $file->getSize();
+        }
 
         $submission = $this->findExistingSubmission($competition, $round, $data);
 
@@ -148,19 +158,33 @@ class SubmissionController extends Controller
         $subject->attach(new EmailNotifierObserver());
 
         if ($submission) {
-            if ($submission->file_path) {
+            if ($file && $submission->file_path) {
                 Storage::disk('public')->delete($submission->file_path);
             }
 
             $newRevisionCount = $submission->revision_count + 1;
 
-            $submission->update([
-                'file_path'      => $filePath,
-                'file_type'      => $file->getClientOriginalExtension(),
-                'file_size'      => $file->getSize(),
+            $updateData = [
                 'status'         => 'submitted',
                 'revision_count' => $newRevisionCount,
-            ]);
+            ];
+
+            if ($file) {
+                $updateData['file_path'] = $filePath;
+                $updateData['file_type'] = $fileType;
+                $updateData['file_size'] = $fileSize;
+                $updateData['submission_url'] = null;
+            } elseif ($url) {
+                if ($submission->file_path) {
+                    Storage::disk('public')->delete($submission->file_path);
+                }
+                $updateData['file_path'] = null;
+                $updateData['file_type'] = null;
+                $updateData['file_size'] = null;
+                $updateData['submission_url'] = $url;
+            }
+
+            $submission->update($updateData);
 
             $this->scoringService->recalculateAllTimeBonuses($competition, $round);
             $submission->refresh();
@@ -181,8 +205,9 @@ class SubmissionController extends Controller
                 'user_id'        => $data['user_id'],
                 'team_id'        => $data['team_id'],
                 'file_path'      => $filePath,
-                'file_type'      => $file->getClientOriginalExtension(),
-                'file_size'      => $file->getSize(),
+                'submission_url' => $url,
+                'file_type'      => $fileType,
+                'file_size'      => $fileSize,
                 'status'         => 'submitted',
                 'revision_count' => 0,
                 'time_bonus'     => 0,

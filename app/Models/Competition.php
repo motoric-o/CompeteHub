@@ -15,8 +15,8 @@ class Competition extends Model
         'user_id',
         'name',
         'description',
+        'rules',
         'type',
-        'scoring_type_id',
         'time_scoring_threshold',
         'registration_fee',
         'quota',
@@ -26,8 +26,8 @@ class Competition extends Model
         'registration_start',
         'registration_end',
         'status',
-        'rules',
         'settings',
+        'allowed_file_types',
     ];
 
     protected function casts(): array
@@ -39,6 +39,8 @@ class Competition extends Model
             'registration_start' => 'datetime',
             'registration_end'   => 'datetime',
             'settings'           => 'array',
+            'allow_community_voting' => 'boolean',
+            'allowed_file_types' => 'array',
         ];
     }
 
@@ -51,19 +53,14 @@ class Competition extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function scoringType(): BelongsTo
-    {
-        return $this->belongsTo(ScoringType::class);
-    }
-
-    public function scoringCriteria(): HasMany
-    {
-        return $this->hasMany(ScoringCriterion::class);
-    }
-
     public function rounds(): HasMany
     {
         return $this->hasMany(Round::class);
+    }
+
+    public function scoringCriteria()
+    {
+        return $this->hasManyThrough(ScoringCriterion::class, Round::class);
     }
 
     public function teams(): HasMany

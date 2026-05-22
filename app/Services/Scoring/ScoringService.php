@@ -9,6 +9,8 @@ use App\Models\CriterionScore;
 use App\Patterns\Observer\ScoringSubject;
 use App\Patterns\Observer\LeaderboardObserver;
 use App\Patterns\Observer\EmailNotifierObserver;
+use App\Core\Scoring\JudgeBasedScoringStrategy;
+use App\Core\Scoring\CommunityVotingScoringStrategy;
 use Illuminate\Support\Facades\DB;
 
 class ScoringService implements ScoringServiceInterface
@@ -21,7 +23,10 @@ class ScoringService implements ScoringServiceInterface
     {
         return DB::transaction(function () use ($submissionId, $judgeUserId, $criteriaScores, $notes) {
             $submission = Submission::findOrFail($submissionId);
-            $criteria = ScoringCriterion::where('competition_id', $submission->competition_id)->get()->keyBy('id');
+            $round = $submission->round;
+            
+            // For Judge Score, criteria belong to the round
+            $criteria = ScoringCriterion::where('round_id', $round->id)->get()->keyBy('id');
 
             $totalWeightedScore = 0;
             foreach ($criteria as $criterionId => $criterion) {
@@ -56,8 +61,11 @@ class ScoringService implements ScoringServiceInterface
                 );
             }
 
-            // Recalculate final_score = average of all judge scores
-            $avgScore = $submission->scores()->avg('score');
+            // Recalculate final_score using JudgeBasedScoringStrategy
+            $strategy = new JudgeBasedScoringStrategy();
+            $judgeScores = $submission->scores()->with('criterionScores.criterion')->get();
+            $avgScore = $strategy->calculate($judgeScores);
+
             $submission->update([
                 'final_score' => $avgScore,
                 'status'      => 'scored',
@@ -70,10 +78,39 @@ class ScoringService implements ScoringServiceInterface
             $subject->notify('score_published', [
                 'submission_id' => $submissionId,
                 'user_id'       => $submission->user_id,
+                'team_id'       => $submission->team_id,
                 'score'         => $avgScore,
             ]);
 
             return $scoreRecord;
         });
+    }
+
+    /**
+     * Recalculates score for community voting.
+     */
+    public function updateCommunityVoteScore(int $submissionId): float
+    {
+        $submission = Submission::findOrFail($submissionId);
+        $votesCount = $submission->votes()->count();
+
+        $strategy = new CommunityVotingScoringStrategy();
+        $finalScore = $strategy->calculate($votesCount);
+
+        $submission->update([
+            'final_score' => $finalScore,
+        ]);
+
+        // Trigger Observer for Leaderboard
+        $subject = new ScoringSubject();
+        $subject->attach(new LeaderboardObserver());
+        $subject->notify('score_published', [
+            'submission_id' => $submissionId,
+            'user_id'       => $submission->user_id,
+            'team_id'       => $submission->team_id,
+            'score'         => $finalScore,
+        ]);
+
+        return $finalScore;
     }
 }
