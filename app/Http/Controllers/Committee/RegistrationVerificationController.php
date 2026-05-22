@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Committee;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Committee\Concerns\CommitteeAuthorization;
 use App\Models\Competition;
 use App\Models\Registration;
 use App\Models\RegistrationDocument;
@@ -14,6 +15,8 @@ use Illuminate\View\View;
 
 class RegistrationVerificationController extends Controller
 {
+    use CommitteeAuthorization;
+
     public function __construct(
         private RegistrationValidator $validator,
     ) {
@@ -103,8 +106,4 @@ class RegistrationVerificationController extends Controller
             ->with('success', "Payment marked as {$request->status}.");
     }
 
-    private function authorizeCommittee(Competition $competition): void
-    {
-        abort_unless($competition->user_id === auth()->id(), 403);
-    }
 }

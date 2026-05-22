@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\TeamController;
-
+use App\Http\Controllers\Committee\CommandCenterController;
 use App\Http\Controllers\Committee\CompetitionController as CommitteeCompetitionController;
 use App\Http\Controllers\Committee\FormTemplateController;
 
@@ -94,6 +94,10 @@ Route::middleware(['auth', 'verified', 'role:committee'])
 
         Route::resource('management/competitions', CommitteeCompetitionController::class)
             ->names('management.competitions');
+
+        // ── Feature 1: Competition Command Center
+        Route::get('/competitions/{competition}/command-center', [CommandCenterController::class, 'show'])
+            ->name('command-center.show');
 
 
 
