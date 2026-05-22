@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\TeamController;
+
 use App\Http\Controllers\Committee\CompetitionController as CommitteeCompetitionController;
 use App\Http\Controllers\Committee\FormTemplateController;
+
 use App\Http\Controllers\Committee\RegistrationVerificationController;
 use App\Http\Controllers\Participant\CompetitionController as ParticipantCompetitionController;
 use App\Http\Controllers\Participant\RegistrationController;
@@ -73,6 +75,8 @@ Route::middleware(['auth', 'verified', 'role:committee'])
         Route::get('/form-templates/{template}/fields', [FormTemplateController::class, 'getFields'])
             ->name('form-templates.fields');
 
+
+
         Route::get('/competitions/{competition}/registrations', [RegistrationVerificationController::class, 'index'])
             ->name('registrations.index');
 
@@ -91,6 +95,8 @@ Route::middleware(['auth', 'verified', 'role:committee'])
         Route::resource('management/competitions', CommitteeCompetitionController::class)
             ->names('management.competitions');
 
+
+
         // Rounds
         Route::resource('competitions.rounds', \App\Http\Controllers\Committee\RoundController::class)
             ->names('rounds');
@@ -105,6 +111,7 @@ Route::middleware(['auth', 'verified', 'role:committee'])
         Route::post('competitions/{competition}/rounds/{round}/brackets/{bracket}/winner', [\App\Http\Controllers\Committee\BracketController::class, 'setWinner'])
             ->name('rounds.brackets.winner');
     });
+
 
 // ── Judge — Penilaian Submisi
 Route::middleware(['auth', 'verified', 'role:judge'])->prefix('judge')->name('judge.')->group(function () {
@@ -140,11 +147,20 @@ Route::middleware(['auth', 'verified', 'role:participant'])
         Route::post('/competitions/{competition}/register', [RegistrationController::class, 'store'])
             ->name('registrations.store');
 
+
+
         Route::get('/competitions/{competition}/registrations/{registration}', [RegistrationController::class, 'show'])
             ->name('registrations.show');
 
+        Route::post('/competitions/{competition}/registrations/{registration}/reupload-document', [RegistrationController::class, 'reuploadDocument'])
+            ->name('registrations.reupload-document');
+
+        Route::post('/competitions/{competition}/registrations/{registration}/reupload-payment', [RegistrationController::class, 'reuploadPayment'])
+            ->name('registrations.reupload-payment');
+
         Route::get('/competitions/{competition}/registrations/{registration}/certificate', [RegistrationController::class, 'downloadCertificate'])
             ->name('registrations.certificate');
+
 
         Route::get('/competitions/{competition}/submissions', [SubmissionController::class, 'index'])
             ->name('submissions.index');

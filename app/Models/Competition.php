@@ -46,9 +46,11 @@ class Competition extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+
+    /** @deprecated Use committee() instead */
     public function creator(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->committee();
     }
 
     public function scoringType(): BelongsTo
@@ -83,13 +85,30 @@ class Competition extends Model
             && $this->registration_end >= now();
     }
 
+    /**
+     * Check if quota is available.
+     * Uses registrations table as the single source of truth.
+     * Previously this used teams()->count() which was inconsistent
+     * with the quota check in RegistrationService.
+     */
     public function hasAvailableQuota(): bool
     {
         if ($this->quota === null) {
-            return true; 
+            return true; // Unlimited
         }
 
-        return $this->teams()->count() < $this->quota;
+        $activeCount = $this->registrations()
+            ->whereNotIn('status', ['rejected'])
+            ->count();
+
+        return $activeCount < $this->quota;
+    }
+
+    // ── Status Helpers ───────────────────────────────────────────────
+
+    public function isStatusAllowingSubmission(): bool
+    {
+        return in_array($this->status, ['ongoing', 'open']);
     }
     public function registrations(): HasMany
     {
