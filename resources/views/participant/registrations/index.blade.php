@@ -14,11 +14,28 @@
                                 <th style="padding: 1rem 1.5rem; font-weight: 700; color: var(--foreground);">Kompetisi</th>
                                 <th style="padding: 1rem 1.5rem; font-weight: 700; color: var(--foreground);">Tanggal Daftar</th>
                                 <th style="padding: 1rem 1.5rem; font-weight: 700; color: var(--foreground);">Status</th>
+                                <th style="padding: 1rem 1.5rem; font-weight: 700; color: var(--foreground);">Payment</th>
                                 <th style="padding: 1rem 1.5rem; font-weight: 700; color: var(--foreground); text-align: right;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($registrations as $reg)
+                                @php
+                                    $paymentStatus = $reg->payment?->status ?? 'missing';
+                                    $paymentStyle = match ($paymentStatus) {
+                                        'paid', 'free' => 'background: #dcfce7; color: #15803d; border-color: #bbf7d0;',
+                                        'unpaid' => 'background: #fee2e2; color: #b91c1c; border-color: #fecaca;',
+                                        'pending_verification' => 'background: #fef3c7; color: #b45309; border-color: #fde68a;',
+                                        default => 'background: #f3f4f6; color: #4b5563; border-color: #e5e7eb;',
+                                    };
+                                    $paymentText = match ($paymentStatus) {
+                                        'paid' => 'Paid',
+                                        'free' => 'Free',
+                                        'unpaid' => 'Unpaid',
+                                        'pending_verification' => 'Pending Verification',
+                                        default => 'No Payment',
+                                    };
+                                @endphp
                                 <tr style="border-bottom: 1px solid var(--border);" onmouseover="this.style.background='var(--muted)'" onmouseout="this.style.background='transparent'">
                                     <td style="padding: 1rem 1.5rem;">
                                         <div style="font-weight: 700; color: var(--foreground);">{{ $reg->competition->name }}</div>
@@ -32,6 +49,11 @@
                                             {{ $reg->status === 'payment_ok' ? 'background: var(--success, #22c55e); color: #fff;' :
                                                ($reg->status === 'rejected' ? 'background: var(--danger, #ef4444); color: #fff;' : 'background: var(--accent, #f59e0b); color: #000;') }}">
                                             {{ ucfirst(str_replace('_', ' ', $reg->status)) }}
+                                        </span>
+                                    </td>
+                                    <td style="padding: 1rem 1.5rem;">
+                                        <span style="padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; border: 1px solid; display: inline-block; {{ $paymentStyle }}">
+                                            {{ $paymentText }}
                                         </span>
                                     </td>
                                     <td style="padding: 1rem 1.5rem; text-align: right;">

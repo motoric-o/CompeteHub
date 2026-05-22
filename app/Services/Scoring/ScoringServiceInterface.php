@@ -9,11 +9,11 @@ interface ScoringServiceInterface
      *
      * @param  int    $submissionId
      * @param  int    $judgeUserId
-     * @param  float  $score
+     * @param  array  $criteriaScores
      * @param  string|null $notes
      * @return \App\Models\Score
      *
      * @throws \App\Exceptions\UnauthorizedJudgeException
      */
-    public function submitScore(int $submissionId, int $judgeUserId, float $score, ?string $notes = null): \App\Models\Score;
+    public function submitScore(int $submissionId, int $judgeUserId, array $criteriaScores, ?string $notes = null): \App\Models\Score;
 }
