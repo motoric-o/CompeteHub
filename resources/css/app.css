@@ -418,3 +418,251 @@ a:hover:not(.btn) { opacity: 0.8; }
 }
 
 .animate-in { animation: fadeInUp 0.4s ease-out both; }
+
+/* ─── Contribution Dashboard ─────────────────────────── */
+
+.contrib-summary-grid {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.contrib-summary-card {
+  text-align: center;
+  padding: 1.25rem;
+}
+
+.contrib-summary-card:hover {
+  border-color: var(--foreground);
+}
+
+.contrib-summary-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  margin-bottom: 0.5rem;
+}
+
+.contrib-summary-value {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--foreground);
+}
+
+.contrib-summary-sub {
+  font-size: 0.7rem;
+  color: var(--muted-foreground);
+  margin-top: 0.25rem;
+}
+
+/* Bar Chart Rows */
+.contrib-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--muted);
+}
+
+.contrib-bar-row:last-child {
+  border-bottom: none;
+}
+
+.contrib-bar-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.contrib-bar-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.7rem;
+  color: #000;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+}
+
+.contrib-bar-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90px;
+}
+
+.contrib-bar-track {
+  flex: 1;
+  height: 24px;
+  background: var(--muted);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.contrib-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 2px;
+}
+
+.contrib-bar-value {
+  font-size: 0.8rem;
+  font-weight: 700;
+  min-width: 48px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Table Styles */
+.contrib-table-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: #000;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+}
+
+.contrib-pct-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.contrib-pct-bar-track {
+  flex: 1;
+  height: 8px;
+  background: var(--muted);
+  border-radius: 4px;
+  overflow: hidden;
+  min-width: 60px;
+}
+
+.contrib-pct-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.contrib-pct-value {
+  font-size: 0.8rem;
+  font-weight: 700;
+  min-width: 45px;
+  text-align: right;
+}
+
+/* Table base */
+.table-wrapper { overflow-x: auto; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+thead th {
+  background: var(--foreground);
+  color: var(--card);
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: left;
+  white-space: nowrap;
+}
+
+thead th:first-child { border-radius: var(--radius-sm) 0 0 0; }
+thead th:last-child { border-radius: 0 var(--radius-sm) 0 0; }
+
+tbody td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--muted);
+  vertical-align: middle;
+}
+
+tbody tr:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+
+/* Empty state */
+.contrib-empty-state {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--muted-foreground);
+}
+
+/* Live dot */
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--chart-5);
+  display: inline-block;
+  animation: livePulse 2s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+  50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border: 1px solid var(--border);
+}
+
+.badge-primary { background: var(--primary); color: var(--primary-foreground); }
+.badge-success { background: var(--chart-5); color: #fff; }
+.badge-warning { background: var(--accent); color: var(--accent-foreground); }
+.badge-captain { background: var(--accent); color: var(--accent-foreground); }
+.badge-muted { background: var(--muted); color: var(--muted-foreground); }
+
+/* Font helpers */
+.font-mono { font-family: var(--font-mono), 'Space Mono', monospace; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .contrib-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  #contrib-main-content {
+    grid-template-columns: 1fr !important;
+  }
+
+  .contrib-bar-label {
+    min-width: 80px;
+  }
+
+  .contrib-bar-name {
+    max-width: 60px;
+  }
+}

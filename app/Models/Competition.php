@@ -76,6 +76,11 @@ class Competition extends Model
         return $this->type === 'team';
     }
 
+    public function isAllMembersSubmission(): bool
+    {
+        return isset($this->settings['submission_mode']) && $this->settings['submission_mode'] === 'all_members';
+    }
+
     public function isRegistrationOpen(): bool
     {
         return $this->status === 'open'

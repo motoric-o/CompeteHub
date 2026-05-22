@@ -4,6 +4,7 @@ namespace App\Patterns\Observer;
 
 use App\Models\LeaderboardEntry;
 use App\Models\Submission;
+use App\Services\ContributionService;
 
 class LeaderboardObserver implements ObserverInterface
 {
@@ -20,6 +21,12 @@ class LeaderboardObserver implements ObserverInterface
                     $submission = Submission::find($data['submission_id']);
                     if ($submission) {
                         $this->updateLeaderboard($submission);
+
+                        // Auto-update contribution stats untuk kompetisi tim
+                        if ($submission->team_id) {
+                            $contributionService = app(ContributionService::class);
+                            $contributionService->recalculateFromSubmission($submission);
+                        }
                     }
                 }
                 break;

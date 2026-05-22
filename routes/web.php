@@ -5,6 +5,7 @@ use App\Http\Controllers\Committee\CompetitionController as CommitteeCompetition
 use App\Http\Controllers\Committee\FormTemplateController;
 use App\Http\Controllers\Committee\RegistrationVerificationController;
 use App\Http\Controllers\Participant\CompetitionController as ParticipantCompetitionController;
+use App\Http\Controllers\Participant\ContributionController;
 use App\Http\Controllers\Participant\RegistrationController;
 use App\Http\Controllers\Participant\SubmissionController;
 use Illuminate\Support\Facades\Route;
@@ -37,6 +38,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/', [TeamController::class, 'store'])->name('store');
         Route::post('/join', [TeamController::class, 'join'])->name('join');
         Route::get('/{team}', [TeamController::class, 'show'])->name('show');
+        Route::get('/{team}/contributions', [ContributionController::class, 'show'])->name('contributions');
+        Route::get('/{team}/contributions/api', [ContributionController::class, 'apiData'])->name('contributions.api');
 
         Route::post('/{team}/kick/{member}', [TeamController::class, 'kick'])->name('kick');
         Route::post('/{team}/leave', [TeamController::class, 'leave'])->name('leave');

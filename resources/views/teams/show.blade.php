@@ -165,6 +165,19 @@
                 @endif
             </div>
         </div>
+
+        {{-- Link Statistik Kontribusi --}}
+        @if(($isMember || $isCaptain) && $team->competition->isAllMembersSubmission())
+        <div class="card animate-in" style="margin-top: 1.5rem;">
+            <h3 class="card-title" style="margin-bottom: 0.75rem;">Statistik Tim</h3>
+            <p class="text-muted" style="font-size: 0.8rem; margin-bottom: 1rem;">
+                Lihat kontribusi setiap anggota: jumlah submisi, skor rata-rata, dan persentase kontribusi.
+            </p>
+            <a href="{{ route('teams.contributions', $team) }}" class="btn btn-primary" style="width: 100%;" id="btn-view-contributions">
+                Lihat Statistik Kontribusi
+            </a>
+        </div>
+        @endif
     </div>
 </div>
 @endsection

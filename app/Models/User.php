@@ -98,6 +98,11 @@ class User extends Authenticatable {
         return $this->hasMany(Submission::class);
     }
 
+    public function contributionStats(): HasMany
+    {
+        return $this->hasMany(ContributionStat::class);
+    }
+
     // ── Role Helpers ───────────────────────────────────────
 
     public function isCommittee(): bool

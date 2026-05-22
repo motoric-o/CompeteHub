@@ -49,10 +49,14 @@ class SubmissionController extends Controller
 
         if ($competition->isTeamBased()) {
             $team = $registration->team;
-            if (!$team->isCaptain($user)) {
-                abort(403, 'Only the team captain can upload submissions.');
+            
+            // Jika kompetisi mengharuskan hanya kapten yang submit
+            if (!$competition->isAllMembersSubmission() && !$team->isCaptain($user)) {
+                abort(403, 'Untuk kompetisi ini, hanya ketua tim yang dapat mengupload submisi.');
             }
-            return ['registration' => $registration, 'team_id' => $team->id, 'user_id' => null];
+            
+            // Selalu rekam ID pengupload
+            return ['registration' => $registration, 'team_id' => $team->id, 'user_id' => $user->id];
         }
 
         return ['registration' => $registration, 'team_id' => null, 'user_id' => $user->id];
@@ -160,6 +164,7 @@ class SubmissionController extends Controller
                 'file_size'      => $file->getSize(),
                 'status'         => 'submitted',
                 'revision_count' => $newRevisionCount,
+                'user_id'        => $data['user_id'],
             ]);
 
             $this->scoringService->recalculateAllTimeBonuses($competition, $round);

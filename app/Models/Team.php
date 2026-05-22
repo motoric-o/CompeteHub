@@ -70,4 +70,9 @@ class Team extends Model
     {
         return $this->hasMany(Registration::class);
     }
+
+    public function contributionStats(): HasMany
+    {
+        return $this->hasMany(ContributionStat::class);
+    }
 }
