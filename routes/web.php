@@ -5,6 +5,7 @@ use App\Http\Controllers\Committee\CommandCenterController;
 use App\Http\Controllers\Committee\CompetitionController as CommitteeCompetitionController;
 use App\Http\Controllers\Committee\FormTemplateController;
 use App\Http\Controllers\Committee\ReviewActionController;
+use App\Http\Controllers\Committee\NotificationLogController;
 
 use App\Http\Controllers\Committee\RegistrationVerificationController;
 use App\Http\Controllers\Participant\CompetitionController as ParticipantCompetitionController;
@@ -96,9 +97,12 @@ Route::middleware(['auth', 'verified', 'role:committee'])
         Route::resource('management/competitions', CommitteeCompetitionController::class)
             ->names('management.competitions');
 
-        // ── Feature 1: Competition Command Center
         Route::get('/competitions/{competition}/command-center', [CommandCenterController::class, 'show'])
             ->name('command-center.show');
+
+        // ── Feature 6: Notification Log
+        Route::get('/competitions/{competition}/notification-log', [NotificationLogController::class, 'index'])
+            ->name('notification-log.index');
 
         // ── Features 7 & 8: One-Click Review Actions
         Route::post('/competitions/{competition}/registrations/{registration}/approve', [ReviewActionController::class, 'approve'])

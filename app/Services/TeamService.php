@@ -140,6 +140,7 @@ class TeamService
             $team->captain,
             $user->name,
             $team->name,
+            $team->id
         );
 
         return $team->fresh(['members']);
@@ -173,7 +174,7 @@ class TeamService
             ->delete();
 
         // Facade Pattern: kirim notifikasi ke anggota yang dikeluarkan
-        $this->notificationFacade->sendTeamKickNotification($member, $team->name);
+        $this->notificationFacade->sendTeamKickNotification($member, $team->name, $team->id);
     }
 
     /**
@@ -204,6 +205,7 @@ class TeamService
             $team->captain,
             $user->name,
             $team->name,
+            $team->id
         );
     }
 

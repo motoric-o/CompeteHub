@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\ActionAuditLog;
 use App\Models\Competition;
 use App\Models\FormTemplate;
+use App\Models\NotificationLog;
 use App\Models\Payment;
 use App\Models\Registration;
 use App\Models\RegistrationDocument;
@@ -233,53 +234,6 @@ class WorkflowIntelligenceTest extends TestCase
     }
 
     /**
-     * Test Committee Command Center Endpoint
-     */
-    public function test_committee_command_center_view(): void
-    {
-        $response = $this->actingAs($this->committee)
-            ->get(route('committee.command-center.show', $this->competition));
-
-        $response->assertStatus(200);
-        $response->assertViewHas('dashboard');
-        $response->assertSee('Command Center');
-        $response->assertSee('Web Development Competition 2026');
-    }
-
-    /**
-     * Test AJAX Pre-check Controller Endpoint
-     */
-    public function test_participant_ajax_pre_check(): void
-    {
-        FormTemplate::create([
-            'competition_id' => $this->competition->id,
-            'name' => 'Registration Form Template',
-            'fields' => [
-                ['label' => 'Full Name', 'type' => 'text', 'required' => true],
-            ],
-        ]);
-
-        $response = $this->actingAs($this->participant)
-            ->postJson(route('participant.registrations.pre-check', $this->competition), [
-                'form_data' => [
-                    'Full Name' => '',
-                ],
-            ]);
-
-        $response->assertStatus(200);
-        $response->assertJsonStructure([
-            'ready',
-            'issues' => [
-                '*' => ['field', 'message', 'severity'],
-            ],
-        ]);
-
-        $data = $response->json();
-        $this->assertFalse($data['ready']);
-        $this->assertCount(2, $data['issues']); // Full Name missing, payment proof missing
-    }
-
-    /**
      * Test ReviewCommandExecutor
      */
     public function test_review_command_executor_approve_reject_reminder(): void
@@ -343,5 +297,88 @@ class WorkflowIntelligenceTest extends TestCase
 
         $result = $executor->sendReminder($registration3, $this->committee->id, 'Tolong segera selesaikan administrasi.');
         $this->assertTrue($result->success);
+
+        // Assert notification log was recorded
+        $this->assertDatabaseHas('notification_logs', [
+            'event_type' => 'reminder_sent',
+            'recipient_email' => $registration3->user->email,
+            'notifiable_id' => $registration3->id,
+            'competition_id' => $this->competition->id,
+            'triggered_by' => $this->committee->id,
+        ]);
+    }
+
+    /**
+     * Test AJAX Pre-check Controller Endpoint
+     */
+    public function test_participant_ajax_pre_check(): void
+    {
+        FormTemplate::create([
+            'competition_id' => $this->competition->id,
+            'name' => 'Registration Form Template',
+            'fields' => [
+                ['label' => 'Full Name', 'type' => 'text', 'required' => true],
+            ],
+        ]);
+
+        $response = $this->actingAs($this->participant)
+            ->postJson(route('participant.registrations.pre-check', $this->competition), [
+                'form_data' => [
+                    'Full Name' => '',
+                ],
+            ]);
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure([
+            'ready',
+            'issues' => [
+                '*' => ['field', 'message', 'severity'],
+            ],
+        ]);
+
+        $data = $response->json();
+        $this->assertFalse($data['ready']);
+        $this->assertCount(2, $data['issues']); // Full Name missing, payment proof missing
+    }
+
+    /**
+     * Test Committee Command Center Endpoint
+     */
+    public function test_committee_command_center_view(): void
+    {
+        $response = $this->actingAs($this->committee)
+            ->get(route('committee.command-center.show', $this->competition));
+
+        $response->assertStatus(200);
+        $response->assertViewHas('dashboard');
+        $response->assertSee('Command Center');
+        $response->assertSee('Web Development Competition 2026');
+    }
+
+    /**
+     * Test Committee Notification Log Endpoint
+     */
+    public function test_committee_notification_log_view(): void
+    {
+        // Record a mock notification log
+        NotificationLog::create([
+            'competition_id' => $this->competition->id,
+            'event_type' => 'reminder_sent',
+            'channel' => 'email',
+            'recipient_email' => 'test@user.com',
+            'subject' => 'Reminder',
+            'status' => 'sent',
+            'payload' => ['body' => 'Test body'],
+            'sent_at' => now(),
+        ]);
+
+        $response = $this->actingAs($this->committee)
+            ->get(route('committee.notification-log.index', $this->competition));
+
+        $response->assertStatus(200);
+        $response->assertViewHas('logs');
+        $response->assertViewHas('summary');
+        $response->assertSee('Log Notifikasi');
+        $response->assertSee('test@user.com');
     }
 }
