@@ -9,6 +9,7 @@ use App\Models\RegistrationDocument;
 use App\Models\ScoringType;
 use App\Models\User;
 use App\Services\Dashboard\CommandCenterService;
+use App\Services\Template\TemplateQualityAnalyzer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
@@ -55,6 +56,51 @@ class WorkflowIntelligenceTest extends TestCase
             'registration_end' => now()->addDays(5)->toDateTimeString(),
             'status' => 'open',
         ]);
+    }
+
+    /**
+     * Test TemplateQualityAnalyzer
+     */
+    public function test_template_quality_analyzer(): void
+    {
+        $this->competition->update(['registration_fee' => 0.00]);
+        $analyzer = new TemplateQualityAnalyzer();
+
+        // 1. Empty template
+        $warnings = $analyzer->analyze([], $this->competition);
+        $this->assertCount(1, $warnings);
+        $this->assertEquals('empty_template', $warnings[0]->code);
+        $this->assertEquals('error', $warnings[0]->severity);
+
+        // 2. Duplicate labels
+        $fields = [
+            ['label' => 'Nama Lengkap', 'type' => 'text', 'required' => true],
+            ['label' => 'nama lengkap', 'type' => 'text', 'required' => false],
+        ];
+        $warnings = $analyzer->analyze($fields, $this->competition);
+        $this->assertCount(1, $warnings);
+        $this->assertEquals('duplicate_field', $warnings[0]->code);
+        $this->assertEquals('error', $warnings[0]->severity);
+
+        // 3. High required field ratio
+        $fields = [
+            ['label' => 'Field 1', 'type' => 'text', 'required' => true],
+            ['label' => 'Field 2', 'type' => 'text', 'required' => true],
+            ['label' => 'Field 3', 'type' => 'text', 'required' => true],
+            ['label' => 'Field 4', 'type' => 'text', 'required' => true],
+            ['label' => 'Field 5', 'type' => 'text', 'required' => true],
+        ];
+        $warnings = $analyzer->analyze($fields, $this->competition);
+        // Ratio is 100%, count > 3, should warn all_fields_required
+        $this->assertTrue(collect($warnings)->contains(fn($w) => $w->code === 'all_fields_required'));
+
+        // 4. Form too long
+        $fields = [];
+        for ($i = 0; $i < 20; $i++) {
+            $fields[] = ['label' => "Field $i", 'type' => 'text', 'required' => false];
+        }
+        $warnings = $analyzer->analyze($fields, $this->competition);
+        $this->assertTrue(collect($warnings)->contains(fn($w) => $w->code === 'form_too_long'));
     }
 
     /**

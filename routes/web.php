@@ -75,8 +75,8 @@ Route::middleware(['auth', 'verified', 'role:committee'])
         Route::get('/form-templates/{template}/fields', [FormTemplateController::class, 'getFields'])
             ->name('form-templates.fields');
 
-
-
+        Route::post('/competitions/{competition}/form-templates/preview', [FormTemplateController::class, 'preview'])
+            ->name('form-templates.preview');
         Route::get('/competitions/{competition}/registrations', [RegistrationVerificationController::class, 'index'])
             ->name('registrations.index');
 
