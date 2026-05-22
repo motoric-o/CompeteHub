@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\ActionAuditLog;
 use App\Models\Competition;
 use App\Models\FormTemplate;
 use App\Models\Payment;
@@ -11,6 +12,7 @@ use App\Models\ScoringType;
 use App\Models\User;
 use App\Services\Dashboard\CommandCenterService;
 use App\Services\Registration\RegistrationPreCheckService;
+use App\Services\Review\ReviewCommandExecutor;
 use App\Services\Template\TemplateQualityAnalyzer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -275,5 +277,71 @@ class WorkflowIntelligenceTest extends TestCase
         $data = $response->json();
         $this->assertFalse($data['ready']);
         $this->assertCount(2, $data['issues']); // Full Name missing, payment proof missing
+    }
+
+    /**
+     * Test ReviewCommandExecutor
+     */
+    public function test_review_command_executor_approve_reject_reminder(): void
+    {
+        $executor = app(ReviewCommandExecutor::class);
+
+        $registration = Registration::create([
+            'competition_id' => $this->competition->id,
+            'user_id' => $this->participant->id,
+            'form_data' => ['Full Name' => 'John Doe'],
+            'status' => 'documents_ok',
+        ]);
+
+        // 1. Try to approve when state is NOT payment_ok
+        $result = $executor->approveRegistration($registration, $this->committee->id);
+        $this->assertFalse($result->success);
+        $this->assertStringContainsString('Registrasi tidak bisa disetujui', $result->message);
+
+        // 2. Set status to payment_ok and approve
+        $registration->update(['status' => 'payment_ok']);
+        $result = $executor->approveRegistration($registration, $this->committee->id);
+        $this->assertTrue($result->success);
+        $this->assertEquals('verified', $registration->fresh()->status);
+
+        // Assert ActionAuditLog was written
+        $this->assertDatabaseHas('action_audit_logs', [
+            'actor_id' => $this->committee->id,
+            'action_type' => 'approve_registration',
+            'target_type' => 'registration',
+            'target_id' => $registration->id,
+            'competition_id' => $this->competition->id,
+        ]);
+
+        // 3. Reject a registration
+        $registration2 = Registration::create([
+            'competition_id' => $this->competition->id,
+            'user_id' => User::factory()->create()->id,
+            'form_data' => ['Full Name' => 'Jane Smith'],
+            'status' => 'pending',
+        ]);
+
+        $result = $executor->rejectRegistration($registration2, $this->committee->id, 'Dokumen pendukung tidak lengkap dan buram.');
+        $this->assertTrue($result->success);
+        $this->assertEquals('rejected', $registration2->fresh()->status);
+        $this->assertEquals('Dokumen pendukung tidak lengkap dan buram.', $registration2->fresh()->rejection_reason);
+
+        // Assert ActionAuditLog was written for reject
+        $this->assertDatabaseHas('action_audit_logs', [
+            'actor_id' => $this->committee->id,
+            'action_type' => 'reject_registration',
+            'target_id' => $registration2->id,
+        ]);
+
+        // 4. Send reminder
+        $registration3 = Registration::create([
+            'competition_id' => $this->competition->id,
+            'user_id' => User::factory()->create()->id,
+            'form_data' => ['Full Name' => 'Bob Johnson'],
+            'status' => 'pending',
+        ]);
+
+        $result = $executor->sendReminder($registration3, $this->committee->id, 'Tolong segera selesaikan administrasi.');
+        $this->assertTrue($result->success);
     }
 }

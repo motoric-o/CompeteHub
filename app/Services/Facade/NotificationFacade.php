@@ -157,4 +157,21 @@ class NotificationFacade
     {
         return $this->storageService->store("submissions/{$path}", $contents);
     }
+
+    /**
+     * Kirim email reminder ke peserta.
+     */
+    public function sendReminderNotification(int $registrationId, string $message, ?int $triggeredBy = null): void
+    {
+        $registration = \App\Models\Registration::with(['user', 'team.captain', 'competition'])->findOrFail($registrationId);
+        $recipient = $registration->user ?? $registration->team?->captain;
+        if (! $recipient) {
+            throw new \RuntimeException("Tidak bisa menemukan penerima notifikasi.");
+        }
+
+        $subject = "Reminder Registrasi — " . $registration->competition->name;
+        $body = "Halo {$recipient->name},<br><br>{$message}";
+
+        $this->mailService->send($recipient->email, $subject, $body);
+    }
 }

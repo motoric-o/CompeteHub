@@ -4,6 +4,7 @@ use App\Http\Controllers\TeamController;
 use App\Http\Controllers\Committee\CommandCenterController;
 use App\Http\Controllers\Committee\CompetitionController as CommitteeCompetitionController;
 use App\Http\Controllers\Committee\FormTemplateController;
+use App\Http\Controllers\Committee\ReviewActionController;
 
 use App\Http\Controllers\Committee\RegistrationVerificationController;
 use App\Http\Controllers\Participant\CompetitionController as ParticipantCompetitionController;
@@ -99,8 +100,18 @@ Route::middleware(['auth', 'verified', 'role:committee'])
         Route::get('/competitions/{competition}/command-center', [CommandCenterController::class, 'show'])
             ->name('command-center.show');
 
+        // ── Features 7 & 8: One-Click Review Actions
+        Route::post('/competitions/{competition}/registrations/{registration}/approve', [ReviewActionController::class, 'approve'])
+            ->name('registrations.approve');
 
+        Route::post('/competitions/{competition}/registrations/{registration}/reject', [ReviewActionController::class, 'reject'])
+            ->name('registrations.reject');
 
+        Route::post('/competitions/{competition}/registrations/{registration}/reminder', [ReviewActionController::class, 'sendReminder'])
+            ->name('registrations.reminder');
+
+        Route::post('/competitions/{competition}/registrations/bulk-validate', [ReviewActionController::class, 'bulkValidate'])
+            ->name('registrations.bulk-validate');
         // Rounds
         Route::resource('competitions.rounds', \App\Http\Controllers\Committee\RoundController::class)
             ->names('rounds');
