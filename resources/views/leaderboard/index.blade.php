@@ -165,14 +165,27 @@
                 const data = await res.json();
                 
                 const isVoting = data.scoring_type === 'Community Voting';
+                const isTimeBased = data.scoring_type === 'Time Based';
                 
                 // Update table header
-                document.getElementById('scoreHeader').innerText = isVoting ? 'Total Votes' : (data.scoring_type === 'Global' ? 'Base Score' : 'Judge Score');
+                if (isVoting) {
+                    document.getElementById('scoreHeader').innerText = 'Total Votes';
+                } else if (isTimeBased) {
+                    document.getElementById('scoreHeader').innerText = 'Time Score';
+                } else if (data.scoring_type === 'Global') {
+                    document.getElementById('scoreHeader').innerText = 'Base Score';
+                } else {
+                    document.getElementById('scoreHeader').innerText = 'Judge Score';
+                }
                 
                 // Update legend
-                document.getElementById('legendContent').innerHTML = isVoting 
-                    ? `<p><strong>Total Votes:</strong> Jumlah suara (vote) dari komunitas yang terkumpul.</p><p><strong>Time Bonus:</strong> Bonus waktu otomatis — 1/3 tercepat mendapat bonus 5→1 pts.</p><p><strong>Total:</strong> Total Votes + Time Bonus.</p>`
-                    : `<p><strong>Judge Score:</strong> Nilai rata-rata dari semua juri (max 100).</p><p><strong>Time Bonus:</strong> Bonus waktu otomatis — 1/3 tercepat dari total pendaftar mendapat bonus 5→1 pts. Revisi tidak merubah bonus waktu yang sudah didapat.</p><p><strong>Total:</strong> Judge Score + Time Bonus (max 105).</p>`;
+                if (isVoting) {
+                    document.getElementById('legendContent').innerHTML = `<p><strong>Total Votes:</strong> Jumlah suara (vote) dari komunitas yang terkumpul.</p><p><strong>Time Bonus:</strong> Bonus waktu otomatis — 1/3 tercepat mendapat bonus 5→1 pts.</p><p><strong>Total:</strong> Total Votes + Time Bonus.</p>`;
+                } else if (isTimeBased) {
+                    document.getElementById('legendContent').innerHTML = `<p><strong>Time Score:</strong> Nilai otomatis berdasarkan kecepatan submission (max 100). Semakin cepat dikirim dari waktu mulai ronde, semakin tinggi nilainya.</p><p><strong>Time Bonus:</strong> Bonus kecepatan relatif — 1/3 tercepat mendapat bonus 5→1 pts.</p><p><strong>Total:</strong> Time Score + Time Bonus (max 105).</p>`;
+                } else {
+                    document.getElementById('legendContent').innerHTML = `<p><strong>Judge Score:</strong> Nilai rata-rata dari semua juri (max 100).</p><p><strong>Time Bonus:</strong> Bonus waktu otomatis — 1/3 tercepat dari total pendaftar mendapat bonus 5→1 pts. Revisi tidak merubah bonus waktu yang sudah didapat.</p><p><strong>Total:</strong> Judge Score + Time Bonus (max 105).</p>`;
+                }
                 
                 renderPodium(data.entries, isVoting);
                 renderTable(data.entries, isVoting);

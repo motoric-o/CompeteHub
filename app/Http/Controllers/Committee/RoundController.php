@@ -32,7 +32,10 @@ class RoundController extends Controller
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'status' => 'required|in:pending,active,finished',
+            'is_bracket' => 'sometimes|boolean',
         ]);
+
+        $validated['is_bracket'] = $request->has('is_bracket');
 
         $competition->rounds()->create($validated);
 
@@ -79,7 +82,10 @@ class RoundController extends Controller
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'status' => 'required|in:pending,active,finished',
+            'is_bracket' => 'sometimes|boolean',
         ]);
+
+        $validated['is_bracket'] = $request->has('is_bracket');
 
         $round->update($validated);
 

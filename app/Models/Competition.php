@@ -103,6 +103,18 @@ class Competition extends Model
         return $this->hasMany(JuryAssignment::class);
     }
 
+    public function scoringType()
+    {
+        return $this->hasOneThrough(
+            ScoringType::class,
+            Round::class,
+            'competition_id',
+            'id',
+            'id',
+            'scoring_type_id'
+        );
+    }
+
     public function submissions(): HasMany
     {
         return $this->hasMany(Submission::class);
@@ -113,3 +125,4 @@ class Competition extends Model
         return $this->hasMany(LeaderboardEntry::class);
     }
 }
+

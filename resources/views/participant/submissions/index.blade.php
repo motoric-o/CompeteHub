@@ -61,7 +61,9 @@
                                                     <div class="flex flex-wrap gap-4 text-sm mt-3">
                                                         @if($submission->final_score !== null)
                                                             <div class="border border-gray-200 px-3 py-1.5 rounded-md">
-                                                                <span class="text-gray-500 text-xs font-medium uppercase tracking-wider block">Judge Score</span>
+                                                                <span class="text-gray-500 text-xs font-medium uppercase tracking-wider block">
+                                                                    {{ $round->scoringType && $round->scoringType->name === 'Time Based' ? 'Time Score' : 'Judge Score' }}
+                                                                </span>
                                                                 <span class="font-bold text-gray-900">{{ $submission->final_score }}<span class="text-gray-400 font-normal">/100</span></span>
                                                             </div>
                                                         @endif

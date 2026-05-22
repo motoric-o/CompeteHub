@@ -36,6 +36,25 @@ class Submission extends Model
         return ($this->final_score ?? 0) + ($this->time_bonus ?? 0);
     }
 
+    /**
+     * Calculate time taken in fractional minutes since the round started.
+     */
+    public function getTimeTakenAttribute(): float
+    {
+        $submittedAt = $this->submitted_at;
+        $startDate = $this->round ? $this->round->start_date : null;
+
+        if (!$submittedAt || !$startDate) {
+            return 0.0;
+        }
+
+        if ($submittedAt <= $startDate) {
+            return 0.0;
+        }
+
+        return ($submittedAt->timestamp - $startDate->timestamp) / 60.0;
+    }
+
     public function competition(): BelongsTo
     {
         return $this->belongsTo(Competition::class);

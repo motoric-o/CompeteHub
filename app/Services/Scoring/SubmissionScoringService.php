@@ -45,6 +45,14 @@ class SubmissionScoringService
         $updated = [];
         $rank = 1;
 
+        $round->loadMissing('scoringType');
+        $isTimeBased = $round->scoringType && $round->scoringType->name === 'Time Based';
+        
+        $timeScoringStrategy = null;
+        if ($isTimeBased) {
+            $timeScoringStrategy = new \App\Core\Scoring\TimeBasedScoringStrategy($competition->time_scoring_threshold ?? 0.0);
+        }
+
         foreach ($submissions as $sub) {
             if ($rank <= $threshold) {
                 $baseBonus = ($threshold === 1)
@@ -55,7 +63,15 @@ class SubmissionScoringService
             }
 
             $effectiveBonus = round($baseBonus, 2);
-            $sub->update(['time_bonus' => $effectiveBonus]);
+            $updateData = ['time_bonus' => $effectiveBonus];
+
+            if ($isTimeBased && $timeScoringStrategy) {
+                $calculatedScore = $timeScoringStrategy->calculate($sub);
+                $updateData['final_score'] = $calculatedScore;
+                $updateData['status'] = 'scored';
+            }
+
+            $sub->update($updateData);
             $updated[] = $sub;
             $rank++;
         }

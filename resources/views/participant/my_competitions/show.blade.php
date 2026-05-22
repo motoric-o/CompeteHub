@@ -56,29 +56,39 @@
                             @endif
                         </div>
 
-                        <!-- Bracket Matchup (If Any) -->
-                        @if($bracket)
-                            <div class="bg-gray-100 border border-border p-4 rounded mb-6 text-center">
-                                <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Pertandingan Anda</p>
-                                <div class="flex justify-center items-center gap-4">
-                                    <div class="font-bold text-lg flex-1 text-right">
-                                        @if($bracket->participant_a)
-                                            {{ $competition->type === 'team' ? \App\Models\Team::find($bracket->participant_a)->name : \App\Models\User::find($bracket->participant_a)->name }}
-                                        @else
-                                            (TBD)
-                                        @endif
-                                    </div>
-                                    <div class="w-10 h-10 bg-red-500 text-white font-bold flex items-center justify-center rounded-full border-2 border-black shrink-0">
-                                        VS
-                                    </div>
-                                    <div class="font-bold text-lg flex-1 text-left">
-                                        @if($bracket->participant_b)
-                                            {{ $competition->type === 'team' ? \App\Models\Team::find($bracket->participant_b)->name : \App\Models\User::find($bracket->participant_b)->name }}
-                                        @else
-                                            (TBD)
-                                        @endif
+                        <!-- Bracket Matchup / Notice -->
+                        @if($activeRound->is_bracket)
+                            @if($bracket)
+                                <div class="bg-gray-100 border border-border p-4 rounded mb-6 text-center">
+                                    <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Pertandingan Anda</p>
+                                    <div class="flex justify-center items-center gap-4">
+                                        <div class="font-bold text-lg flex-1 text-right">
+                                            @if($bracket->participant_a)
+                                                {{ $competition->type === 'team' ? \App\Models\Team::find($bracket->participant_a)->name : \App\Models\User::find($bracket->participant_a)->name }}
+                                            @else
+                                                (TBD)
+                                            @endif
+                                        </div>
+                                        <div class="w-10 h-10 bg-red-500 text-white font-bold flex items-center justify-center rounded-full border-2 border-black shrink-0">
+                                            VS
+                                        </div>
+                                        <div class="font-bold text-lg flex-1 text-left">
+                                            @if($bracket->participant_b)
+                                                {{ $competition->type === 'team' ? \App\Models\Team::find($bracket->participant_b)->name : \App\Models\User::find($bracket->participant_b)->name }}
+                                            @else
+                                                (TBD)
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
+                            @else
+                                <div class="bg-gray-50 border border-dashed border-gray-300 p-4 rounded mb-6 text-center text-gray-500 text-sm">
+                                    Bagan pertandingan belum diatur atau Anda mendapat BYE/tidak terdaftar di pertandingan babak ini.
+                                </div>
+                            @endif
+                        @else
+                            <div class="bg-blue-50 border-2 border-blue-900 p-4 rounded mb-6 text-center text-blue-900 font-bold">
+                                📢 Babak Umum: Semua peserta bersaing langsung tanpa bagan tanding (Bracket).
                             </div>
                         @endif
 

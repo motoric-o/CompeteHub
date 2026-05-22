@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('name', 200);
             $table->text('description')->nullable();
             $table->longText('rules')->nullable();
+            $table->json('allowed_file_types')->nullable();
             $table->enum('type', ['individual', 'team']);
             $table->decimal('time_scoring_threshold', 10, 2)->nullable();
             $table->decimal('registration_fee', 12, 2)->default(0);
@@ -38,6 +39,7 @@ return new class extends Migration
             $table->timestamp('start_date')->nullable();
             $table->timestamp('end_date')->nullable();
             $table->enum('status', ['pending', 'active', 'finished'])->default('pending');
+            $table->boolean('is_bracket')->default(true);
             $table->timestamps();
         });
     }

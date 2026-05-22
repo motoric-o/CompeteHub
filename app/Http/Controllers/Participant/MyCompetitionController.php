@@ -97,7 +97,7 @@ class MyCompetitionController extends Controller
 
         // Fetch bracket info for active round if any
         $bracket = null;
-        if ($activeRound) {
+        if ($activeRound && $activeRound->is_bracket) {
             $participantId = $registration->team_id ?? ($registration->user_id ?? $user->id);
             $bracket = \App\Models\Bracket::where('round_id', $activeRound->id)
                 ->where(function($query) use ($participantId) {

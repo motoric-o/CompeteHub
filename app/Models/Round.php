@@ -14,7 +14,8 @@ class Round extends Model
         'round_order',
         'start_date',
         'end_date',
-        'status'
+        'status',
+        'is_bracket'
     ];
 
     public function competition(): BelongsTo
@@ -47,6 +48,7 @@ class Round extends Model
         return [
             'start_date' => 'datetime',
             'end_date'   => 'datetime',
+            'is_bracket' => 'boolean',
         ];
     }
 }

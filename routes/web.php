@@ -147,11 +147,11 @@ Route::middleware(['auth', 'verified', 'role:participant'])
             ->name('competitions.index');
 
         // Registrations
-        Route::get('/registrations', [Participant\RegistrationController::class, 'index'])->name('registrations.index');
-        Route::get('/competitions/{competition}/register', [Participant\RegistrationController::class, 'create'])->name('registrations.create');
-        Route::post('/competitions/{competition}/register', [Participant\RegistrationController::class, 'store'])->name('registrations.store');
-        Route::get('/competitions/{competition}/registrations/{registration}', [Participant\RegistrationController::class, 'show'])->name('registrations.show');
-        Route::get('/competitions/{competition}/registrations/{registration}/certificate', [Participant\RegistrationController::class, 'downloadCertificate'])->name('registrations.download-certificate');
+        Route::get('/registrations', [RegistrationController::class, 'index'])->name('registrations.index');
+        Route::get('/competitions/{competition}/register', [RegistrationController::class, 'create'])->name('registrations.create');
+        Route::post('/competitions/{competition}/register', [RegistrationController::class, 'store'])->name('registrations.store');
+        Route::get('/competitions/{competition}/registrations/{registration}', [RegistrationController::class, 'show'])->name('registrations.show');
+        Route::get('/competitions/{competition}/registrations/{registration}/certificate', [RegistrationController::class, 'downloadCertificate'])->name('registrations.download-certificate');
 
         // My Competitions Hub
         Route::get('/my-competitions', [\App\Http\Controllers\Participant\MyCompetitionController::class, 'index'])->name('my-competitions.index');

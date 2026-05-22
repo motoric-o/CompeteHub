@@ -18,21 +18,27 @@ abstract class AbstractCompetition
 
     public function __construct(Competition $competition)
     {
-        $competition->load('scoringType');
+        $competition->loadMissing(['scoringType', 'rounds.scoringType']);
         $this->competition = $competition;
         $this->scoring = $this->resolveScoringStrategy($competition);
     }
 
     protected function resolveScoringStrategy(Competition $competition): ScoringStrategy
     {
-        if ($competition->scoringType && $competition->scoringType->name === 'Time Based') {
-            return new TimeBasedScoringStrategy($competition->time_scoring_threshold ?? 0);
-        } else if ($competition->scoringType && $competition->scoringType->name === 'Judge Score') {
-            return new JudgeBasedScoringStrategy();
+        $scoringType = $competition->scoringType;
+
+        if (!$scoringType) {
+            $round = $competition->rounds->firstWhere('status', 'active') ?? $competition->rounds->first();
+            $scoringType = $round?->scoringType;
         }
 
-        return throw new \InvalidArgumentException('Invalid scoring type');
+        if ($scoringType && $scoringType->name === 'Time Based') {
+            return new TimeBasedScoringStrategy($competition->time_scoring_threshold ?? 0);
+        }
+
+        return new JudgeBasedScoringStrategy();
     }
+
 
     public function isRegistrationOpen(): bool
     {

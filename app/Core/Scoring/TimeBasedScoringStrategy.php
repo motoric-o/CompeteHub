@@ -15,12 +15,17 @@ class TimeBasedScoringStrategy implements ScoringStrategy
 
     public function calculate($submission)
     {
-        $score = 100;
-        if ($submission->time_taken > $this->threshold) {
-            return 0;
+        if ($this->threshold <= 0) {
+            return 0.0;
         }
 
-        $score -= ($submission->time_taken / $this->threshold) * 100;
-        return $score;
+        $timeTaken = $submission->time_taken;
+
+        if ($timeTaken > $this->threshold) {
+            return 0.0;
+        }
+
+        $score = 100.0 - ($timeTaken / $this->threshold) * 100.0;
+        return max(0.0, min(100.0, $score));
     }
 }
