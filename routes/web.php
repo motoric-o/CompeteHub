@@ -132,6 +132,16 @@ Route::middleware(['auth', 'verified', 'role:committee'])
             ->name('rounds.brackets.destroy');
         Route::post('competitions/{competition}/rounds/{round}/brackets/{bracket}/winner', [\App\Http\Controllers\Committee\BracketController::class, 'setWinner'])
             ->name('rounds.brackets.winner');
+
+        // Scoring Criteria
+        Route::resource('competitions.scoring-criteria', \App\Http\Controllers\Committee\ScoringCriterionController::class)
+            ->names('scoring-criteria')
+            ->except(['show']);
+
+        // Juries
+        Route::resource('competitions.juries', \App\Http\Controllers\Committee\JuryAssignmentController::class)
+            ->names('juries')
+            ->only(['index', 'store', 'destroy']);
     });
 
 
@@ -144,6 +154,9 @@ Route::middleware(['auth', 'verified', 'role:judge'])->prefix('judge')->name('ju
 
     // Lihat semua submisi dalam satu round
     Route::get('/competitions/{competition}/rounds/{round}', [ScoringController::class, 'round'])->name('submissions.round');
+
+    // Antrean penilaian (Iterator Pattern)
+    Route::get('/competitions/{competition}/rounds/{round}/queue', [ScoringController::class, 'queue'])->name('submissions.queue');
 
     // Lihat detail & beri nilai satu submisi
     Route::get('/competitions/{competition}/submissions/{submission}', [ScoringController::class, 'show'])->name('submissions.show');

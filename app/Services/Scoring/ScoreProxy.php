@@ -6,6 +6,7 @@ use App\Exceptions\UnauthorizedJudgeException;
 use App\Models\JuryAssignment;
 use App\Models\Score;
 use App\Models\Submission;
+use App\Models\ScoringCriterion;
 
 class ScoreProxy implements ScoringServiceInterface
 {
@@ -18,7 +19,7 @@ class ScoreProxy implements ScoringServiceInterface
      * Proxy Pattern — verifies judge is assigned to the competition
      * before delegating to the real ScoringService.
      */
-    public function submitScore(int $submissionId, int $judgeUserId, float $score, ?string $notes = null): Score
+    public function submitScore(int $submissionId, int $judgeUserId, array $criteriaScores, ?string $notes = null): Score
     {
         $submission = Submission::findOrFail($submissionId);
 
@@ -37,11 +38,19 @@ class ScoreProxy implements ScoringServiceInterface
             throw new \Exception('Maaf, periode penilaian untuk babak ini sudah ditutup.');
         }
 
-        // Validate score range: 0-100
-        if ($score < 0 || $score > 100) {
-            throw new \InvalidArgumentException('Score must be between 0 and 100.');
+        // Validate each criterion score
+        $criteria = ScoringCriterion::where('competition_id', $submission->competition_id)->get()->keyBy('id');
+
+        foreach ($criteria as $criterionId => $criterion) {
+            if (!isset($criteriaScores[$criterionId])) {
+                throw new \InvalidArgumentException("Nilai untuk kriteria '{$criterion->name}' wajib diisi.");
+            }
+            $val = $criteriaScores[$criterionId];
+            if (!is_numeric($val) || $val < 0 || $val > $criterion->max_score) {
+                throw new \InvalidArgumentException("Nilai untuk kriteria '{$criterion->name}' harus berupa angka antara 0 dan {$criterion->max_score}.");
+            }
         }
 
-        return $this->realService->submitScore($submissionId, $judgeUserId, $score, $notes);
+        return $this->realService->submitScore($submissionId, $judgeUserId, $criteriaScores, $notes);
     }
 }

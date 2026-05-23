@@ -53,7 +53,13 @@ class RoundController extends Controller
             $participants = \App\Models\User::whereIn('id', $registrations->pluck('user_id'))->get();
         }
 
-        return view('committee.rounds.show', compact('competition', 'round', 'participants'));
+        $submissions = \App\Models\Submission::where('round_id', $round->id)
+            ->get()
+            ->keyBy(function($sub) use ($competition) {
+                return $competition->type === 'team' ? $sub->team_id : $sub->user_id;
+            });
+
+        return view('committee.rounds.show', compact('competition', 'round', 'participants', 'submissions'));
     }
 
     public function edit(Competition $competition, Round $round): View

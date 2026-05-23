@@ -11,37 +11,71 @@
         </div>
     </x-slot>
 
+    @php
+        $formTemplate = $competition->formTemplates()->latest()->first();
+
+        $requiredDocuments = collect($formTemplate?->fields ?? [])
+            ->filter(fn ($field) => ($field['type'] ?? null) === 'file' && ($field['required'] ?? false))
+            ->values();
+
+        $documentsByType = $registration->documents->keyBy('document_type');
+
+        $statusBadge = match ($registration->status) {
+            'payment_ok', 'verified' => 'bg-green-100 text-green-700 border-green-200',
+            'rejected' => 'bg-red-100 text-red-700 border-red-200',
+            'documents_ok' => 'bg-blue-100 text-blue-700 border-blue-200',
+            'account_ok' => 'bg-indigo-100 text-indigo-700 border-indigo-200',
+            default => 'bg-yellow-100 text-yellow-700 border-yellow-200',
+        };
+
+        $paymentStatus = $registration->payment?->status ?? 'missing';
+
+        $paymentBadge = match ($paymentStatus) {
+            'paid', 'free' => 'bg-green-100 text-green-700 border-green-200',
+            'unpaid' => 'bg-red-100 text-red-700 border-red-200',
+            'pending_verification' => 'bg-yellow-100 text-yellow-700 border-yellow-200',
+            default => 'bg-gray-100 text-gray-600 border-gray-200',
+        };
+
+        $paymentText = match ($paymentStatus) {
+            'paid' => 'Paid',
+            'free' => 'Free',
+            'unpaid' => 'Unpaid',
+            'pending_verification' => 'Pending Verification',
+            default => 'No Payment Record',
+        };
+
+        // Konfigurasi warna Next Action Card dari branch workflow-intelligence
+        $bgColors = [
+            'success' => 'rgba(34,197,94,0.1)',
+            'warning' => 'rgba(245,158,11,0.1)',
+            'error'   => 'rgba(239,68,68,0.1)',
+            'info'    => 'rgba(59,130,246,0.1)',
+            'neutral' => 'var(--muted)',
+        ];
+        $borderColors = [
+            'success' => 'var(--success)',
+            'warning' => '#f59e0b',
+            'error'   => 'var(--destructive)',
+            'info'    => '#3b82f6',
+            'neutral' => 'var(--border)',
+        ];
+        $textColors = [
+            'success' => 'var(--success)',
+            'warning' => '#d97706',
+            'error'   => 'var(--destructive)',
+            'info'    => '#2563eb',
+            'neutral' => 'var(--foreground)',
+        ];
+        $severity = $nextAction->severity ?? 'info';
+        $bg = $bgColors[$severity] ?? $bgColors['info'];
+        $borderColor = $borderColors[$severity] ?? $borderColors['info'];
+        $textColor = $textColors[$severity] ?? $textColors['info'];
+    @endphp
+
     <div class="py-6 space-y-6">
 
         {{-- ── NEXT ACTION CARD (Feature 2) ────────────────────────────── --}}
-        @php
-            $bgColors = [
-                'success' => 'rgba(34,197,94,0.1)',
-                'warning' => 'rgba(245,158,11,0.1)',
-                'error'   => 'rgba(239,68,68,0.1)',
-                'info'    => 'rgba(59,130,246,0.1)',
-                'neutral' => 'var(--muted)',
-            ];
-            $borderColors = [
-                'success' => 'var(--success)',
-                'warning' => '#f59e0b',
-                'error'   => 'var(--destructive)',
-                'info'    => '#3b82f6',
-                'neutral' => 'var(--border)',
-            ];
-            $textColors = [
-                'success' => 'var(--success)',
-                'warning' => '#d97706',
-                'error'   => 'var(--destructive)',
-                'info'    => '#2563eb',
-                'neutral' => 'var(--foreground)',
-            ];
-            $severity = $nextAction->severity ?? 'info';
-            $bg = $bgColors[$severity] ?? $bgColors['info'];
-            $borderColor = $borderColors[$severity] ?? $borderColors['info'];
-            $textColor = $textColors[$severity] ?? $textColors['info'];
-        @endphp
-
         <div class="card animate-in" style="
             background: {{ $bg }};
             border: 2px solid {{ $borderColor }};
@@ -109,6 +143,13 @@
             </div>
         </div>
 
+        @if($registration->status === 'rejected')
+            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                <div class="font-semibold">Registration Rejected</div>
+                <p class="text-sm mt-1">{{ $registration->rejection_reason ?? 'No reason provided.' }}</p>
+            </div>
+        @endif
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
             {{-- ── LEFT COLUMN: DETAIL & DOKUMEN ─────────────────────────── --}}
@@ -139,36 +180,51 @@
                     @endif
                 </div>
 
-                {{-- Documents section --}}
+                {{-- Documents Checklist section --}}
                 <div class="card" id="documents-section">
                     <h3 class="text-lg font-bold mb-4">📂 Dokumen Persyaratan</h3>
                     <div class="space-y-4">
-                        @forelse($registration->documents as $doc)
+                        @forelse($requiredDocuments as $field)
+                            @php
+                                $label = $field['label'] ?? 'Document';
+                                $doc = $documentsByType->get($label);
+                                $docStatus = $doc?->status ?? 'missing';
+
+                                $docBadgeStyle = match ($docStatus) {
+                                    'verified' => 'background: rgba(34,197,94,0.1); color: var(--success);',
+                                    'rejected' => 'background: rgba(239,68,68,0.1); color: var(--destructive);',
+                                    'pending' => 'background: rgba(245,158,11,0.1); color: #f59e0b;',
+                                    default => 'background: rgba(156,163,175,0.1); color: #6b7280;',
+                                };
+                            @endphp
+
                             <div class="p-4 rounded-lg border border-border bg-muted/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                 <div>
-                                    <div class="font-bold text-sm">{{ $doc->document_type }}</div>
+                                    <div class="font-bold text-sm">{{ $label }}</div>
                                     <div class="text-xs text-muted-foreground mt-0.5">
-                                        Uploaded {{ $doc->created_at->diffForHumans() }}
+                                        @if($doc)
+                                            Uploaded {{ $doc->created_at->diffForHumans() }}
+                                        @else
+                                            Dokumen wajib pendaftaran belum diupload.
+                                        @endif
                                     </div>
-                                    <div class="mt-2">
-                                        <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank"
-                                           class="text-xs font-bold hover:underline" style="color: var(--secondary);">
-                                            Lihat File Saat Ini →
-                                        </a>
-                                    </div>
+                                    @if($doc)
+                                        <div class="mt-2">
+                                            <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank"
+                                               class="text-xs font-bold hover:underline" style="color: var(--secondary);">
+                                                Lihat File Saat Ini →
+                                            </a>
+                                        </div>
+                                    @endif
                                 </div>
 
                                 <div class="flex flex-col items-end gap-2">
-                                    <span class="text-xs px-2.5 py-1 rounded-full font-bold" style="
-                                        background: {{ $doc->status === 'verified' ? 'rgba(34,197,94,0.1)' : ($doc->status === 'rejected' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)') }};
-                                        color: {{ $doc->status === 'verified' ? 'var(--success)' : ($doc->status === 'rejected' ? 'var(--destructive)' : '#f59e0b') }};
-                                        border: 1px solid currentColor;
-                                    ">
-                                        {{ $doc->status === 'verified' ? 'Diverifikasi' : ($doc->status === 'rejected' ? 'Ditolak' : 'Menunggu Review') }}
+                                    <span class="text-xs px-2.5 py-1 rounded-full font-bold border" style="{{ $docBadgeStyle }}">
+                                        {{ $docStatus === 'verified' ? 'Diverifikasi' : ($docStatus === 'rejected' ? 'Ditolak' : ($docStatus === 'pending' ? 'Menunggu Review' : 'Missing')) }}
                                     </span>
 
                                     {{-- Form Reupload if Rejected --}}
-                                    @if($doc->status === 'rejected')
+                                    @if($doc && $doc->status === 'rejected')
                                         <form method="POST" action="{{ route('participant.registrations.reupload-document', [$competition, $registration]) }}"
                                               class="mt-2 flex items-center gap-2" enctype="multipart/form-data">
                                             @csrf
@@ -182,14 +238,32 @@
                                 </div>
                             </div>
                         @empty
-                            <p class="text-sm text-muted-foreground">Tidak ada dokumen yang diunggah.</p>
+                            <p class="text-sm text-muted-foreground">Kompetisi ini tidak membutuhkan dokumen persyaratan khusus.</p>
                         @endforelse
+
+                        {{-- Render other uploaded documents non-required --}}
+                        @foreach($registration->documents->whereNotIn('document_type', $requiredDocuments->pluck('label')) as $doc)
+                            <div class="p-4 rounded-lg border border-border bg-muted/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div>
+                                    <div class="font-bold text-sm">{{ $doc->document_type }}</div>
+                                    <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank" class="text-xs font-bold hover:underline" style="color: var(--secondary);">
+                                        Lihat File →
+                                    </a>
+                                </div>
+                                <span class="text-xs px-2.5 py-1 rounded-full font-bold border"
+                                      style="background: {{ $doc->status === 'verified' ? 'rgba(34,197,94,0.1)' : ($doc->status === 'rejected' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)') }};
+                                             color: {{ $doc->status === 'verified' ? 'var(--success)' : ($doc->status === 'rejected' ? 'var(--destructive)' : '#f59e0b') }};
+                                             border: 1px solid currentColor;">
+                                    {{ ucfirst($doc->status) }}
+                                </span>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
 
             </div>
 
-            {{-- ── RIGHT COLUMN: PEMBAYARAN ────────────────────────────────── --}}
+            {{-- ── RIGHT COLUMN: PEMBAYARAN & AKSES ─────────────────────────── --}}
             <div class="lg:col-span-1 space-y-6">
 
                 {{-- Payment section --}}
@@ -227,7 +301,7 @@
                                 {{-- Rekening Panitia --}}
                                 <div class="p-3 rounded-lg border border-dashed border-border text-xs space-y-1">
                                     <div class="font-bold">Instruksi Transfer:</div>
-                                    <div>Bank Mandiri: <strong>123-456789-0</strong>01</div>
+                                    <div>Bank Mandiri: <strong>123-456789-001</strong></div>
                                     <div>Atas Nama: <strong>CompeteHub Admin</strong></div>
                                     <div class="text-muted-foreground">Pastikan nominal transfer sesuai dan upload bukti di bawah.</div>
                                 </div>
@@ -281,7 +355,6 @@
                 @endif
 
             </div>
-
         </div>
 
     </div>

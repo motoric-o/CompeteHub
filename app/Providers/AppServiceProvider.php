@@ -20,11 +20,12 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        //
+        \Illuminate\Support\Facades\View::composer('layouts.app', function ($view) {
+            if (auth()->check()) {
+                $view->with('userAccess', new \App\Patterns\Proxy\RoleAccessProxy(auth()->user()));
+            }
+        });
     }
 }

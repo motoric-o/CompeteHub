@@ -14,6 +14,74 @@
         </div>
     </x-slot>
 
+    @php
+        $formTemplate = $competition->formTemplates()->latest()->first();
+
+        $requiredDocuments = collect($formTemplate?->fields ?? [])
+            ->filter(fn ($field) => ($field['type'] ?? null) === 'file' && ($field['required'] ?? false))
+            ->values();
+
+        $documentsByType = $registration->documents->keyBy('document_type');
+
+        $statusBadge = match ($registration->status) {
+            'payment_ok', 'verified' => 'bg-green-100 text-green-700 border-green-200',
+            'rejected' => 'bg-red-100 text-red-700 border-red-200',
+            'documents_ok' => 'bg-blue-100 text-blue-700 border-blue-200',
+            'account_ok' => 'bg-indigo-100 text-indigo-700 border-indigo-200',
+            default => 'bg-yellow-100 text-yellow-700 border-yellow-200',
+        };
+
+        $paymentStatus = $registration->payment?->status ?? 'missing';
+
+        $paymentBadge = match ($paymentStatus) {
+            'paid', 'free' => 'bg-green-100 text-green-700 border-green-200',
+            'unpaid' => 'bg-red-100 text-red-700 border-red-200',
+            'pending_verification' => 'bg-yellow-100 text-yellow-700 border-yellow-200',
+            default => 'bg-gray-100 text-gray-600 border-gray-200',
+        };
+
+        $paymentText = match ($paymentStatus) {
+            'paid' => 'Paid',
+            'free' => 'Free',
+            'unpaid' => 'Unpaid',
+            'pending_verification' => 'Pending Verification',
+            default => 'No Payment Record',
+        };
+
+        $explanations = [];
+
+        if (! $registration->user && ! $registration->team) {
+            $explanations[] = ['type' => 'danger', 'text' => 'Registration tidak memiliki user atau team yang valid.'];
+        }
+
+        foreach ($requiredDocuments as $field) {
+            $label = $field['label'] ?? 'Document';
+            $doc = $documentsByType->get($label);
+
+            if (! $doc) {
+                $explanations[] = ['type' => 'danger', 'text' => "Dokumen {$label} belum diupload."];
+            } elseif ($doc->status === 'pending') {
+                $explanations[] = ['type' => 'warning', 'text' => "Dokumen {$label} masih pending dan perlu diverifikasi."];
+            } elseif ($doc->status === 'rejected') {
+                $explanations[] = ['type' => 'danger', 'text' => "Dokumen {$label} ditolak, sehingga validasi akan gagal."];
+            }
+        }
+
+        if ($competition->registration_fee > 0) {
+            if (! $registration->payment) {
+                $explanations[] = ['type' => 'danger', 'text' => 'Payment record belum ada untuk kompetisi berbayar.'];
+            } elseif ($registration->payment->status === 'pending_verification') {
+                $explanations[] = ['type' => 'warning', 'text' => 'Pembayaran masih pending verification dan perlu dicek panitia.'];
+            } elseif ($registration->payment->status === 'unpaid') {
+                $explanations[] = ['type' => 'danger', 'text' => 'Pembayaran ditandai unpaid, sehingga registrasi belum bisa lolos.'];
+            }
+        }
+
+        if (empty($explanations)) {
+            $explanations[] = ['type' => 'success', 'text' => 'Semua syarat utama sudah aman. Registration siap dijalankan melalui Run Validation Chain.'];
+        }
+    @endphp
+
     <div class="py-6 space-y-6">
 
         {{-- ── SESSION MESSAGES ─────────────────────────────────────────── --}}
@@ -30,7 +98,7 @@
         </div>
         @endif
 
-        {{-- ── ONE-CLICK REVIEW ACTIONS (Feature 7 & 8) ────────────────── --}}
+        {{-- ── ONE-CLICK REVIEW ACTIONS ────────────────── --}}
         @if(!in_array($registration->status, ['verified', 'rejected']))
         <div class="card" style="border: 2px solid var(--border);">
             <h3 class="text-base font-bold mb-4">⚡ Tindakan Cepat</h3>
@@ -70,6 +138,21 @@
             </div>
         </div>
         @endif
+
+        {{-- ── VALIDATION EXPLANATION PANEL ──────────────────────────────── --}}
+        <div class="card">
+            <h3 class="text-base font-bold mb-3">Panel Penjelasan Validasi</h3>
+            <div class="space-y-2">
+                @foreach($explanations as $item)
+                    <div class="px-4 py-3 rounded-lg border text-sm
+                        {{ $item['type'] === 'success' ? 'bg-green-50 text-green-700 border-green-200' : '' }}
+                        {{ $item['type'] === 'warning' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : '' }}
+                        {{ $item['type'] === 'danger' ? 'bg-red-50 text-red-700 border-red-200' : '' }}">
+                        {{ $item['text'] }}
+                    </div>
+                @endforeach
+            </div>
+        </div>
 
         {{-- ── STATUS CARD ──────────────────────────────────────────────── --}}
         <div class="card">
@@ -132,46 +215,84 @@
             @endif
         </div>
 
-        {{-- ── DOCUMENTS ────────────────────────────────────────────────── --}}
+        {{-- ── DOCUMENT CHECKLIST & UPLOADS ───────────────────────────────── --}}
         <div class="card">
-            <h3 class="text-base font-bold mb-3">Dokumen</h3>
-            @forelse($registration->documents as $doc)
-            <div class="flex items-center justify-between py-3" style="border-bottom: 1px solid var(--border);">
-                <div>
-                    <span class="text-sm font-semibold">{{ $doc->document_type }}</span>
-                    <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank"
-                       class="ml-3 text-xs font-medium hover:underline" style="color: var(--primary);">
-                        Lihat File →
-                    </a>
-                </div>
-                <div class="flex items-center gap-3">
-                    <span class="text-xs px-2 py-1 rounded-full font-semibold"
-                          style="background: {{ $doc->status === 'verified' ? 'rgba(34,197,94,0.1)' : ($doc->status === 'rejected' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)') }};
-                                 color: {{ $doc->status === 'verified' ? 'var(--success)' : ($doc->status === 'rejected' ? 'var(--destructive)' : '#f59e0b') }};">
-                        {{ ucfirst($doc->status) }}
-                    </span>
-                    @if($doc->status !== 'verified')
-                    <form method="POST" action="{{ route('committee.documents.verify', $doc) }}" class="inline">
-                        @csrf @method('PATCH')
-                        <input type="hidden" name="status" value="verified">
-                        <button type="submit" class="text-xs font-semibold hover:underline" style="color: var(--success);">Approve</button>
-                    </form>
-                    @endif
-                    @if($doc->status !== 'rejected')
-                    <form method="POST" action="{{ route('committee.documents.verify', $doc) }}" class="inline">
-                        @csrf @method('PATCH')
-                        <input type="hidden" name="status" value="rejected">
-                        <button type="submit" class="text-xs font-semibold hover:underline" style="color: var(--destructive);">Reject</button>
-                    </form>
-                    @endif
-                </div>
+            <h3 class="text-base font-bold mb-3">Dokumen Tambahan & Checklist</h3>
+            <div class="space-y-3">
+                @forelse($requiredDocuments as $field)
+                    @php
+                        $label = $field['label'] ?? 'Document';
+                        $doc = $documentsByType->get($label);
+                        $docStatus = $doc?->status ?? 'missing';
+
+                        $docBadgeStyle = match ($docStatus) {
+                            'verified' => 'background: rgba(34,197,94,0.1); color: var(--success);',
+                            'rejected' => 'background: rgba(239,68,68,0.1); color: var(--destructive);',
+                            'pending' => 'background: rgba(245,158,11,0.1); color: #f59e0b;',
+                            default => 'background: rgba(156,163,175,0.1); color: #6b7280;',
+                        };
+                    @endphp
+
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between py-3" style="border-bottom: 1px solid var(--border);">
+                        <div>
+                            <div class="text-sm font-semibold">{{ $label }}</div>
+                            @if($doc)
+                                <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank" class="text-xs font-medium hover:underline" style="color: var(--primary);">
+                                    Lihat File →
+                                </a>
+                            @else
+                                <p class="text-xs text-gray-400">Dokumen wajib pendaftaran belum diupload.</p>
+                            @endif
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs px-2 py-1 rounded-full font-semibold border" style="{{ $docBadgeStyle }}">
+                                {{ ucfirst(str_replace('_', ' ', $docStatus)) }}
+                            </span>
+
+                            @if($doc)
+                                @if($doc->status !== 'verified')
+                                <form method="POST" action="{{ route('committee.documents.verify', $doc) }}" class="inline">
+                                    @csrf @method('PATCH')
+                                    <input type="hidden" name="status" value="verified" />
+                                    <button type="submit" class="text-xs font-semibold hover:underline" style="color: var(--success);">Approve</button>
+                                </form>
+                                @endif
+
+                                @if($doc->status !== 'rejected')
+                                <form method="POST" action="{{ route('committee.documents.verify', $doc) }}" class="inline">
+                                    @csrf @method('PATCH')
+                                    <input type="hidden" name="status" value="rejected" />
+                                    <button type="submit" class="text-xs font-semibold hover:underline" style="color: var(--destructive);">Reject</button>
+                                </form>
+                                @endif
+                            @endif
+                        </div>
+                    </div>
+                @empty
+                    <p class="text-sm text-gray-400">Kompetisi ini tidak memiliki konfigurasi dokumen wajib.</p>
+                @endforelse
+
+                {{-- Non-required/other uploaded documents --}}
+                @foreach($registration->documents->whereNotIn('document_type', $requiredDocuments->pluck('label')) as $doc)
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between py-3" style="border-bottom: 1px solid var(--border);">
+                        <div>
+                            <div class="text-sm font-semibold">{{ $doc->document_type }}</div>
+                            <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank" class="text-xs font-medium hover:underline" style="color: var(--primary);">
+                                Lihat File →
+                            </a>
+                        </div>
+                        <span class="text-xs px-2 py-1 rounded-full font-semibold"
+                              style="background: {{ $doc->status === 'verified' ? 'rgba(34,197,94,0.1)' : ($doc->status === 'rejected' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)') }};
+                                     color: {{ $doc->status === 'verified' ? 'var(--success)' : ($doc->status === 'rejected' ? 'var(--destructive)' : '#f59e0b') }};">
+                            {{ ucfirst($doc->status) }}
+                        </span>
+                    </div>
+                @endforeach
             </div>
-            @empty
-            <p class="text-sm text-muted-foreground">Tidak ada dokumen yang diupload.</p>
-            @endforelse
         </div>
 
-        {{-- ── PAYMENT ──────────────────────────────────────────────────── --}}
+        {{-- ── PAYMENT VERIFICATION ─────────────────────────────────────────── --}}
         <div class="card">
             <h3 class="text-base font-bold mb-3">Pembayaran</h3>
             @if($registration->payment)
@@ -180,16 +301,20 @@
                     <div class="text-sm">
                         Nominal: <strong>Rp {{ number_format($registration->payment->amount, 0, ',', '.') }}</strong>
                     </div>
-                    <div class="text-sm">
-                        Status: <strong>{{ ucfirst(str_replace('_', ' ', $registration->payment->status)) }}</strong>
+                    <div class="text-sm flex items-center gap-2">
+                        Status: 
+                        <span class="text-xs px-2 py-0.5 rounded-full font-semibold border {{ $paymentBadge }}">
+                            {{ $paymentText }}
+                        </span>
                     </div>
                     @if($registration->payment->proof_path)
                     <a href="{{ asset('storage/' . $registration->payment->proof_path) }}" target="_blank"
-                       class="text-sm font-medium hover:underline" style="color: var(--primary);">
+                       class="text-sm font-medium hover:underline mt-1 inline-block" style="color: var(--primary);">
                         Lihat Bukti Pembayaran →
                     </a>
                     @endif
                 </div>
+
                 @if($registration->payment->status === 'pending_verification')
                 <div class="flex gap-2">
                     <form method="POST" action="{{ route('committee.payments.verify', $registration->payment) }}">
@@ -237,7 +362,7 @@
         <div class="card" style="max-width: 480px; width: 90%;">
             <h3 class="text-lg font-bold mb-2">Kirim Reminder</h3>
             <p class="text-sm text-muted-foreground mb-4">
-                Kirim pesan pengingat kepada peserta.
+                Kirim pesan pengingat kepada peserta. <br>
                 Penerima: <strong>{{ $registration->user?->email ?? $registration->team?->captain?->email ?? '—' }}</strong>
             </p>
             <form method="POST" action="{{ route('committee.registrations.reminder', [$competition, $registration]) }}">
@@ -262,5 +387,4 @@
             });
         });
     </script>
-
 </x-app-layout>

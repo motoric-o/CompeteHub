@@ -9,6 +9,7 @@ use App\Services\Registration\RegistrationService;
 use App\States\RegistrationStateResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class RegistrationController extends Controller
@@ -21,7 +22,7 @@ class RegistrationController extends Controller
     public function index(): View
     {
         $registrations = Registration::where('user_id', auth()->id())
-            ->with('competition')
+            ->with(['competition', 'payment', 'documents'])
             ->latest()
             ->get();
 
@@ -51,10 +52,10 @@ class RegistrationController extends Controller
 
         if (! $eligibility['eligible']) {
             $messages = [
-                'already_registered'    => 'You have already registered for this competition.',
-                'registration_closed'   => 'Registration period has ended.',
+                'already_registered'        => 'You have already registered for this competition.',
+                'registration_closed'       => 'Registration period has ended.',
                 'registration_not_open_yet' => 'Registration has not opened yet.',
-                'quota_full'            => 'Registration quota is full.',
+                'quota_full'                => 'Registration quota is full.',
             ];
 
             $msg = $messages[$eligibility['reason']] ?? 'Unable to register at this time.';
@@ -98,15 +99,7 @@ class RegistrationController extends Controller
 
         // Customize dynamic action URLs if actionable
         if ($nextAction->isActionable) {
-            // Kita bisa mengarahkan URL action ke rute yang tepat
             if ($nextAction->state === 'account_ok') {
-                // Diarahkan ke form upload ulang dokumen jika ditolak
-                // Namun karena page upload dokumen saat ini tergabung di pendaftaran/edit atau sejenisnya,
-                // mari kita buat actionUrl mengarah ke route upload ulang atau contact.
-                // Jika tidak ada route khusus edit, kita bisa gunakan javascript trigger atau link ke detail.
-                // Mari kita set actionUrl ke '#' atau null dan handle via javascript/anchor ke list dokumen,
-                // atau ke dashboard untuk kemudahan.
-                // Tapi kita juga bisa mengisi link download certificate jika verified:
                 $nextAction = new \App\States\NextActionCard(
                     state: $nextAction->state,
                     title: $nextAction->title,
@@ -120,7 +113,6 @@ class RegistrationController extends Controller
                     progressSteps: $nextAction->progressSteps
                 );
             } elseif ($nextAction->state === 'documents_ok') {
-                // Upload bukti pembayaran
                 $nextAction = new \App\States\NextActionCard(
                     state: $nextAction->state,
                     title: $nextAction->title,
@@ -195,13 +187,7 @@ class RegistrationController extends Controller
     ) {
         abort_unless($registration->user_id === auth()->id(), 403);
         abort_unless($registration->competition_id === $competition->id, 404);
-
-        // Certificate only downloadable for fully verified registrations
-        abort_unless(
-            in_array($registration->status, ['verified', 'payment_ok']),
-            403,
-            'Registration not yet verified.'
-        );
+        abort_unless(in_array($registration->status, ['verified', 'payment_ok']), 403, 'Registration not verified.');
 
         $data = [
             'userName'        => auth()->user()->name,
@@ -210,11 +196,11 @@ class RegistrationController extends Controller
 
         $path = $facade->generatePDFCertificate(auth()->id(), $competition->id, $data);
 
-        $absolutePath = \Illuminate\Support\Facades\Storage::disk('public')->path($path);
-
-        if (! \Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+        if (! Storage::disk('public')->exists($path)) {
             abort(404, 'Certificate file not found. Please try again.');
         }
+
+        $absolutePath = Storage::disk('public')->path($path);
 
         return response()->download(
             $absolutePath,
@@ -284,8 +270,6 @@ class RegistrationController extends Controller
             'status'     => 'pending_verification',
         ]);
 
-        // Jika pendaftaran dalam status pending atau ditolak, naikkan ke payment_ok/pending sesuai alur verifikasi
-        // Status awal verifikasi: payment proof di-upload -> status pendaftaran = payment_ok
         if ($registration->status !== 'verified') {
             $registration->update([
                 'status' => 'payment_ok',
@@ -294,5 +278,28 @@ class RegistrationController extends Controller
         }
 
         return back()->with('success', 'Bukti pembayaran berhasil diupload. Menunggu verifikasi panitia.');
+    }
+
+    private function checkRegistrationAvailability(Competition $competition): ?RedirectResponse
+    {
+        if (! in_array($competition->status, ['open', 'ongoing'])) {
+            return redirect()
+                ->route('participant.competitions.index')
+                ->with('error', 'Registration is not open for this competition.');
+        }
+
+        if ($competition->registration_start && now()->isBefore($competition->registration_start)) {
+            return redirect()
+                ->route('participant.competitions.index')
+                ->with('error', 'Registration period has not started yet.');
+        }
+
+        if ($competition->registration_end && now()->isAfter($competition->registration_end)) {
+            return redirect()
+                ->route('participant.competitions.index')
+                ->with('error', 'Registration period has ended.');
+        }
+
+        return null;
     }
 }
