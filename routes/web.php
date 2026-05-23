@@ -104,6 +104,16 @@ Route::middleware(['auth', 'verified', 'role:committee'])
             ->name('rounds.brackets.destroy');
         Route::post('competitions/{competition}/rounds/{round}/brackets/{bracket}/winner', [\App\Http\Controllers\Committee\BracketController::class, 'setWinner'])
             ->name('rounds.brackets.winner');
+
+        // Scoring Criteria
+        Route::resource('competitions.scoring-criteria', \App\Http\Controllers\Committee\ScoringCriterionController::class)
+            ->names('scoring-criteria')
+            ->except(['show']);
+
+        // Juries
+        Route::resource('competitions.juries', \App\Http\Controllers\Committee\JuryAssignmentController::class)
+            ->names('juries')
+            ->only(['index', 'store', 'destroy']);
     });
 
 // ── Judge — Penilaian Submisi

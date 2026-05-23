@@ -108,7 +108,11 @@ class ScoringController extends Controller
         // Get all judge scores for this submission (for transparency)
         $allScores = $submission->scores()->with('judge')->get();
 
-        return view('judge.submissions.score', compact('competition', 'submission', 'myScore', 'allScores'));
+        // Get competition scoring criteria and existing scores for criteria
+        $criterias = $competition->scoringCriteria()->get();
+        $myCriterionScores = $myScore ? $myScore->criterionScores->keyBy('criterion_id') : collect();
+
+        return view('judge.submissions.score', compact('competition', 'submission', 'myScore', 'allScores', 'criterias', 'myCriterionScores'));
     }
 
     /**
@@ -117,12 +121,14 @@ class ScoringController extends Controller
     public function store(Request $request, Competition $competition, Submission $submission)
     {
         $request->validate([
-            'score' => 'required|numeric|min:0|max:100',
-            'notes' => 'nullable|string|max:1000',
+            'criteria'   => 'required|array',
+            'criteria.*' => 'required|numeric|min:0',
+            'notes'      => 'nullable|string|max:1000',
         ], [
-            'score.required' => 'Nilai wajib diisi.',
-            'score.min'      => 'Nilai minimal 0.',
-            'score.max'      => 'Nilai maksimal 100.',
+            'criteria.required'   => 'Nilai kriteria wajib diisi.',
+            'criteria.*.required' => 'Nilai kriteria wajib diisi.',
+            'criteria.*.numeric'  => 'Nilai kriteria harus berupa angka.',
+            'criteria.*.min'      => 'Nilai kriteria minimal 0.',
         ]);
 
         $user = auth()->user();
@@ -131,10 +137,10 @@ class ScoringController extends Controller
         $proxy = new ScoreProxy(new ScoringService());
 
         try {
-            $proxy->submitScore(
+            $scoreRecord = $proxy->submitScore(
                 $submission->id,
                 $user->id,
-                (float) $request->score,
+                $request->input('criteria', []),
                 $request->notes
             );
         } catch (UnauthorizedJudgeException $e) {
@@ -149,6 +155,6 @@ class ScoringController extends Controller
         }
 
         return redirect()->route('judge.submissions.round', [$competition, $submission->round_id])
-            ->with('success', "Nilai {$request->score} berhasil disimpan untuk submission #{$submission->id}!");
+            ->with('success', "Nilai total {$scoreRecord->score} berhasil disimpan untuk submission #{$submission->id}!");
     }
 }

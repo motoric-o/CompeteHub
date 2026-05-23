@@ -8,12 +8,19 @@ use App\Models\Registration;
 use App\Models\RegistrationDocument;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class RegistrationController extends Controller
 {
     public function create(Competition $competition): View|RedirectResponse
     {
+        $availabilityCheck = $this->checkRegistrationAvailability($competition);
+
+        if ($availabilityCheck) {
+            return $availabilityCheck;
+        }
+
         $existing = Registration::where('competition_id', $competition->id)
             ->where('user_id', auth()->id())
             ->first();
@@ -27,9 +34,14 @@ class RegistrationController extends Controller
         return view('participant.registrations.create', compact('competition', 'formTemplate'));
     }
 
-
     public function store(Request $request, Competition $competition): RedirectResponse
     {
+        $availabilityCheck = $this->checkRegistrationAvailability($competition);
+
+        if ($availabilityCheck) {
+            return $availabilityCheck;
+        }
+
         $existing = Registration::where('competition_id', $competition->id)
             ->where('user_id', auth()->id())
             ->first();
@@ -39,17 +51,15 @@ class RegistrationController extends Controller
                 ->route('participant.registrations.show', [$competition, $existing])
                 ->with('error', 'You have already registered for this competition.');
         }
+
         if ($competition->quota) {
             $count = Registration::where('competition_id', $competition->id)
                 ->whereNotIn('status', ['rejected'])
                 ->count();
+
             if ($count >= $competition->quota) {
                 return back()->with('error', 'Registration quota is full.');
             }
-        }
-
-        if ($competition->registration_end && now()->isAfter($competition->registration_end)) {
-            return back()->with('error', 'Registration period has ended.');
         }
 
         $formTemplate = $competition->formTemplates()->first();
@@ -69,7 +79,7 @@ class RegistrationController extends Controller
                 $type = $field['type'] ?? 'text';
                 $required = $field['required'] ?? false;
 
-                if (!$label || !$required) {
+                if (! $label || ! $required) {
                     continue;
                 }
 
@@ -100,17 +110,15 @@ class RegistrationController extends Controller
                     'registration_id' => $registration->id,
                     'document_type' => $type,
                     'file_path' => $path,
+                    'status' => 'pending',
+                    'uploaded_at' => now(),
                 ]);
             }
         }
 
         if ($competition->registration_fee > 0) {
-            $proofPath = null;
-
-            if ($request->hasFile('payment_proof')) {
-                $proofPath = $request->file('payment_proof')
-                    ->store('payment-proofs/' . $registration->id, 'public');
-            }
+            $proofPath = $request->file('payment_proof')
+                ->store('payment-proofs/' . $registration->id, 'public');
 
             $registration->payment()->create([
                 'amount' => $competition->registration_fee,
@@ -140,14 +148,13 @@ class RegistrationController extends Controller
         return view('participant.registrations.show', compact('competition', 'registration'));
     }
 
-    /**
-     * Download Certificate.
-     */
-    public function downloadCertificate(Competition $competition, Registration $registration, \App\Services\Facade\NotificationFacade $facade)
-    {
+    public function downloadCertificate(
+        Competition $competition,
+        Registration $registration,
+        \App\Services\Facade\NotificationFacade $facade
+    ) {
         abort_unless($registration->user_id === auth()->id(), 403);
-        
-        // Asumsi sertifikat hanya bisa diunduh jika status registrasi verified
+        abort_unless($registration->competition_id === $competition->id, 404);
         abort_unless(in_array($registration->status, ['verified', 'payment_ok']), 403, 'Registration not verified.');
 
         $data = [
@@ -157,25 +164,45 @@ class RegistrationController extends Controller
 
         $path = $facade->generatePDFCertificate(auth()->id(), $competition->id, $data);
 
-        $absolutePath = \Illuminate\Support\Facades\Storage::disk('public')->path($path);
-
-        if (!\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+        if (! Storage::disk('public')->exists($path)) {
             abort(404, 'Certificate file not found. Please try again.');
         }
+
+        $absolutePath = Storage::disk('public')->path($path);
 
         return response()->download($absolutePath, "Certificate_{$competition->name}_{$registration->id}.pdf");
     }
 
-    /**
-     * My registrations list.
-     */
     public function index(): View
     {
         $registrations = Registration::where('user_id', auth()->id())
-            ->with('competition')
+            ->with(['competition', 'payment', 'documents'])
             ->latest()
             ->get();
 
         return view('participant.registrations.index', compact('registrations'));
+    }
+
+    private function checkRegistrationAvailability(Competition $competition): ?RedirectResponse
+    {
+        if (! in_array($competition->status, ['open', 'ongoing'])) {
+            return redirect()
+                ->route('participant.competitions.index')
+                ->with('error', 'Registration is not open for this competition.');
+        }
+
+        if ($competition->registration_start && now()->isBefore($competition->registration_start)) {
+            return redirect()
+                ->route('participant.competitions.index')
+                ->with('error', 'Registration period has not started yet.');
+        }
+
+        if ($competition->registration_end && now()->isAfter($competition->registration_end)) {
+            return redirect()
+                ->route('participant.competitions.index')
+                ->with('error', 'Registration period has ended.');
+        }
+
+        return null;
     }
 }

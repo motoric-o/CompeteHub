@@ -25,14 +25,15 @@ class SubmissionController extends Controller
     public function score(Request $request, Competition $competition, Submission $submission, ScoringServiceInterface $scoringService)
     {
         $request->validate([
-            'score' => 'required|numeric|min:0|max:100',
+            'criteria' => 'required|array',
+            'criteria.*' => 'required|numeric|min:0',
             'notes' => 'nullable|string'
         ]);
         
         try {
-            $scoringService->submitScore($submission->id, auth()->id(), $request->score, $request->notes);
+            $scoringService->submitScore($submission->id, auth()->id(), $request->input('criteria', []), $request->notes);
             return back()->with('success', 'Berhasil memberikan penilaian.');
-        } catch (UnauthorizedJudgeException $e) {
+        } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
     }
