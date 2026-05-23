@@ -3,14 +3,18 @@
 namespace App\Http\Controllers\Committee;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Committee\Concerns\CommitteeAuthorization;
 use App\Models\Competition;
 use App\Models\FormTemplate;
+use App\Services\Template\TemplateQualityAnalyzer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class FormTemplateController extends Controller
 {
+    use CommitteeAuthorization;
+
     public function index(Competition $competition): View
     {
         $this->authorizeCommittee($competition);
@@ -55,6 +59,26 @@ class FormTemplateController extends Controller
             $fields = $source->fields;
         } else {
             $fields = json_decode($validated['fields'], true);
+            if (!is_array($fields)) {
+                $fields = [];
+            }
+        }
+
+        if (!$request->filled('clone_from')) {
+            $analyzer = app(TemplateQualityAnalyzer::class);
+            $warnings = $analyzer->analyze($fields, $competition);
+
+            if (!$analyzer->isTemplateSafe($warnings)) {
+                $errors = array_map(fn($w) => $w->message, array_filter($warnings, fn($w) => $w->severity === 'error'));
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['fields' => $errors]);
+            }
+
+            $nonErrors = array_filter($warnings, fn($w) => $w->severity !== 'error');
+            if (count($nonErrors) > 0) {
+                session()->flash('template_warnings', array_map(fn($w) => $w->toArray(), $nonErrors));
+            }
         }
 
         $competition->formTemplates()->create([
@@ -85,9 +109,29 @@ class FormTemplateController extends Controller
             'fields' => ['required', 'json'],
         ]);
 
+        $fields = json_decode($validated['fields'], true);
+        if (!is_array($fields)) {
+            $fields = [];
+        }
+
+        $analyzer = app(TemplateQualityAnalyzer::class);
+        $warnings = $analyzer->analyze($fields, $competition);
+
+        if (!$analyzer->isTemplateSafe($warnings)) {
+            $errors = array_map(fn($w) => $w->message, array_filter($warnings, fn($w) => $w->severity === 'error'));
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['fields' => $errors]);
+        }
+
+        $nonErrors = array_filter($warnings, fn($w) => $w->severity !== 'error');
+        if (count($nonErrors) > 0) {
+            session()->flash('template_warnings', array_map(fn($w) => $w->toArray(), $nonErrors));
+        }
+
         $template->update([
             'name' => $validated['name'],
-            'fields' => json_decode($validated['fields'], true),
+            'fields' => $fields,
         ]);
 
         return redirect()
@@ -107,16 +151,33 @@ class FormTemplateController extends Controller
             ->with('success', 'Form template deleted.');
     }
 
+    public function preview(Request $request, Competition $competition): \Illuminate\Http\JsonResponse
+    {
+        $this->authorizeCommittee($competition);
+
+        $fields = json_decode($request->input('fields'), true);
+        if (!is_array($fields)) {
+            $fields = [];
+        }
+
+        $html = view('committee.form-templates.partials.preview-fields', compact('fields'))->render();
+
+        $analyzer = app(TemplateQualityAnalyzer::class);
+        $warnings = $analyzer->analyze($fields, $competition);
+
+        return response()->json([
+            'html' => $html,
+            'warnings' => array_map(fn($w) => $w->toArray(), $warnings),
+            'summary' => $analyzer->getSummary($warnings),
+            'is_safe' => $analyzer->isTemplateSafe($warnings),
+        ]);
+    }
+
     public function getFields(FormTemplate $template)
     {
         abort_unless($template->competition?->user_id === auth()->id(), 403);
 
         return response()->json($template->fields);
-    }
-
-    private function authorizeCommittee(Competition $competition): void
-    {
-        abort_unless($competition->user_id === auth()->id(), 403);
     }
 
     private function authorizeTemplate(Competition $competition, FormTemplate $template): void

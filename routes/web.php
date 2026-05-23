@@ -1,8 +1,12 @@
 <?php
 
 use App\Http\Controllers\TeamController;
+use App\Http\Controllers\Committee\CommandCenterController;
+use App\Http\Controllers\Committee\ReviewActionController;
+use App\Http\Controllers\Committee\NotificationLogController;
 use App\Http\Controllers\Committee\CompetitionController as CommitteeCompetitionController;
 use App\Http\Controllers\Committee\FormTemplateController;
+
 use App\Http\Controllers\Committee\RegistrationVerificationController;
 use App\Http\Controllers\Participant\CompetitionController as ParticipantCompetitionController;
 use App\Http\Controllers\Participant\RegistrationController;
@@ -73,6 +77,9 @@ Route::middleware(['auth', 'verified', 'role:committee'])
         Route::get('/form-templates/{template}/fields', [FormTemplateController::class, 'getFields'])
             ->name('form-templates.fields');
 
+        Route::post('/competitions/{competition}/form-templates/preview', [FormTemplateController::class, 'preview'])
+            ->name('form-templates.preview');
+
         Route::get('/competitions/{competition}/registrations', [RegistrationVerificationController::class, 'index'])
             ->name('registrations.index');
 
@@ -90,6 +97,27 @@ Route::middleware(['auth', 'verified', 'role:committee'])
 
         Route::resource('management/competitions', CommitteeCompetitionController::class)
             ->names('management.competitions');
+
+        // ── Feature 1: Competition Command Center
+        Route::get('/competitions/{competition}/command-center', [CommandCenterController::class, 'show'])
+            ->name('command-center.show');
+
+        // ── Feature 6: Notification Log
+        Route::get('/competitions/{competition}/notification-log', [NotificationLogController::class, 'index'])
+            ->name('notification-log.index');
+
+        // ── Features 7 & 8: One-Click Review Actions
+        Route::post('/competitions/{competition}/registrations/{registration}/approve', [ReviewActionController::class, 'approve'])
+            ->name('registrations.approve');
+
+        Route::post('/competitions/{competition}/registrations/{registration}/reject', [ReviewActionController::class, 'reject'])
+            ->name('registrations.reject');
+
+        Route::post('/competitions/{competition}/registrations/{registration}/reminder', [ReviewActionController::class, 'sendReminder'])
+            ->name('registrations.reminder');
+
+        Route::post('/competitions/{competition}/registrations/bulk-validate', [ReviewActionController::class, 'bulkValidate'])
+            ->name('registrations.bulk-validate');
 
         // Rounds
         Route::resource('competitions.rounds', \App\Http\Controllers\Committee\RoundController::class)
@@ -115,6 +143,7 @@ Route::middleware(['auth', 'verified', 'role:committee'])
             ->names('juries')
             ->only(['index', 'store', 'destroy']);
     });
+
 
 // ── Judge — Penilaian Submisi
 Route::middleware(['auth', 'verified', 'role:judge'])->prefix('judge')->name('judge.')->group(function () {
@@ -153,11 +182,22 @@ Route::middleware(['auth', 'verified', 'role:participant'])
         Route::post('/competitions/{competition}/register', [RegistrationController::class, 'store'])
             ->name('registrations.store');
 
+        // AJAX pre-check endpoint — validates form completeness before final submit
+        Route::post('/competitions/{competition}/register/pre-check', [RegistrationController::class, 'preCheck'])
+            ->name('registrations.pre-check');
+
         Route::get('/competitions/{competition}/registrations/{registration}', [RegistrationController::class, 'show'])
             ->name('registrations.show');
 
+        Route::post('/competitions/{competition}/registrations/{registration}/reupload-document', [RegistrationController::class, 'reuploadDocument'])
+            ->name('registrations.reupload-document');
+
+        Route::post('/competitions/{competition}/registrations/{registration}/reupload-payment', [RegistrationController::class, 'reuploadPayment'])
+            ->name('registrations.reupload-payment');
+
         Route::get('/competitions/{competition}/registrations/{registration}/certificate', [RegistrationController::class, 'downloadCertificate'])
             ->name('registrations.certificate');
+
 
         Route::get('/competitions/{competition}/submissions', [SubmissionController::class, 'index'])
             ->name('submissions.index');

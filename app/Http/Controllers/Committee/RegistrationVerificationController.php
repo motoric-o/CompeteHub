@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Committee;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Committee\Concerns\CommitteeAuthorization;
 use App\Models\Competition;
 use App\Models\Payment;
 use App\Models\Registration;
@@ -14,6 +15,8 @@ use Illuminate\View\View;
 
 class RegistrationVerificationController extends Controller
 {
+    use CommitteeAuthorization;
+
     public function __construct(
         private RegistrationValidator $validator,
     ) {
