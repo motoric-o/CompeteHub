@@ -104,6 +104,9 @@
                     @else
                         <form action="{{ route('judge.submissions.score', [$competition, $submission]) }}" method="POST">
                             @csrf
+                            @if(request('from_queue'))
+                                <input type="hidden" name="from_queue" value="1">
+                            @endif
 
                             <div class="space-y-6 mb-6">
                                 @foreach($criterias as $criterion)

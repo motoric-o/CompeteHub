@@ -126,6 +126,9 @@ Route::middleware(['auth', 'verified', 'role:judge'])->prefix('judge')->name('ju
     // Lihat semua submisi dalam satu round
     Route::get('/competitions/{competition}/rounds/{round}', [ScoringController::class, 'round'])->name('submissions.round');
 
+    // Antrean penilaian (Iterator Pattern)
+    Route::get('/competitions/{competition}/rounds/{round}/queue', [ScoringController::class, 'queue'])->name('submissions.queue');
+
     // Lihat detail & beri nilai satu submisi
     Route::get('/competitions/{competition}/submissions/{submission}', [ScoringController::class, 'show'])->name('submissions.show');
     Route::post('/competitions/{competition}/submissions/{submission}/score', [ScoringController::class, 'store'])->name('submissions.score');
