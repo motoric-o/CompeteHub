@@ -163,6 +163,14 @@
                     </span>
                 </div>
                 @endif
+                
+                @if(($team->competition->submission_mode ?? '') === 'all_members')
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                    <a href="{{ route('participant.contributions.show', [$team->competition, $team]) }}" class="btn btn-primary btn-sm" style="width: 100%;">
+                        Statistik Kontribusi
+                    </a>
+                </div>
+                @endif
             </div>
         </div>
     </div>

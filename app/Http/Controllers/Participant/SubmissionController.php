@@ -12,16 +12,19 @@ use App\Services\Scoring\SubmissionScoringService;
 use App\Patterns\Observer\ScoringSubject;
 use App\Patterns\Observer\LeaderboardObserver;
 use App\Patterns\Observer\EmailNotifierObserver;
+use App\Services\ContributionStatService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class SubmissionController extends Controller
 {
     private SubmissionScoringService $scoringService;
+    private ContributionStatService $contributionStatService;
 
-    public function __construct(SubmissionScoringService $scoringService)
+    public function __construct(SubmissionScoringService $scoringService, ContributionStatService $contributionStatService)
     {
         $this->scoringService = $scoringService;
+        $this->contributionStatService = $contributionStatService;
     }
 
     
@@ -48,7 +51,10 @@ class SubmissionController extends Controller
         }
 
         if ($competition->isTeamBased()) {
-            $team = $registration->team;
+            if ($competition->isAllMembersSubmit()) {
+                return ['registration' => $registration, 'team_id' => $team->id, 'user_id' => $user->id];
+            }
+
             if (!$team->isCaptain($user)) {
                 abort(403, 'Only the team captain can upload submissions.');
             }
@@ -62,9 +68,11 @@ class SubmissionController extends Controller
     {
         return Submission::where('competition_id', $competition->id)
             ->where('round_id', $round->id)
-            ->where(function ($q) use ($data) {
-                if ($data['team_id']) {
+            ->where(function ($q) use ($data, $competition) {
+                if ($competition->isTeamBased() && !$competition->isAllMembersSubmit()) {
                     $q->where('team_id', $data['team_id']);
+                } else if ($data['team_id'] && $competition->isAllMembersSubmit()) {
+                    $q->where('user_id', $data['user_id'])->where('team_id', $data['team_id']);
                 } else {
                     $q->where('user_id', $data['user_id']);
                 }
@@ -78,11 +86,15 @@ class SubmissionController extends Controller
         $rounds = $competition->rounds()->orderBy('round_order')->get();
 
         $submissions = Submission::where('competition_id', $competition->id);
-        if ($data['team_id']) {
+        
+        if ($competition->isTeamBased() && !$competition->isAllMembersSubmit()) {
             $submissions->where('team_id', $data['team_id']);
+        } else if ($data['team_id'] && $competition->isAllMembersSubmit()) {
+            $submissions->where('user_id', $data['user_id'])->where('team_id', $data['team_id']);
         } else {
             $submissions->where('user_id', $data['user_id']);
         }
+        
         $submissions = $submissions->get()->keyBy('round_id');
 
         // Pass max revisions to view
@@ -199,6 +211,10 @@ class SubmissionController extends Controller
             ]);
 
             $message = "Submission berhasil diupload! Time bonus: {$timeBonus} pts. Anda masih bisa revisi " . SubmissionScoringService::MAX_REVISIONS . " kali.";
+        }
+
+        if ($competition->isTeamBased() && $competition->isAllMembersSubmit()) {
+            $this->contributionStatService->recalculateForTeam($data['registration']->team, $competition);
         }
 
         return redirect()->route('participant.submissions.index', $competition)->with('success', $message);

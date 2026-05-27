@@ -17,6 +17,7 @@ class Competition extends Model
         'description',
         'type',
         'category',
+        'submission_mode',
         'scoring_type_id',
         'time_scoring_threshold',
         'registration_fee',
@@ -79,6 +80,11 @@ class Competition extends Model
         return $this->type === 'team';
     }
 
+    public function isAllMembersSubmit(): bool
+    {
+        return $this->submission_mode === 'all_members';
+    }
+
     public function isRegistrationOpen(): bool
     {
         return $this->status === 'open'
@@ -105,7 +111,7 @@ class Competition extends Model
         return $activeCount < $this->quota;
     }
 
-    // ── Status Helpers ───────────────────────────────────────────────
+    // Status Helpers 
 
     public function isStatusAllowingSubmission(): bool
     {
@@ -134,5 +140,10 @@ class Competition extends Model
     public function leaderboardEntries(): HasMany
     {
         return $this->hasMany(LeaderboardEntry::class);
+    }
+
+    public function contributionStats(): HasMany
+    {
+        return $this->hasMany(ContributionStat::class);
     }
 }
