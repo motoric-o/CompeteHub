@@ -52,6 +52,7 @@ class SubmissionSeeder extends Seeder
         $fitri   = DB::table('users')->where('email', 'fitri@gmail.com')->value('id');
         $gunawan = DB::table('users')->where('email', 'gunawan@gmail.com')->value('id');
         $hendra  = DB::table('users')->where('email', 'hendra@gmail.com')->value('id');
+        $indah   = DB::table('users')->where('email', 'indah@gmail.com')->value('id');
 
         DB::table('submissions')->insert([
             // 1. Hackathon Penyisihan
@@ -208,7 +209,7 @@ class SubmissionSeeder extends Seeder
             [
                 'competition_id' => $ctf,
                 'round_id'       => $ctfRound,
-                'user_id'        => null,
+                'user_id'        => $gunawan,
                 'team_id'        => $teamCyber,
                 'file_path'      => 'submissions/cybershield_ctf.zip',
                 'file_type'      => 'application/zip',
@@ -224,7 +225,23 @@ class SubmissionSeeder extends Seeder
             [
                 'competition_id' => $ctf,
                 'round_id'       => $ctfRound,
-                'user_id'        => null,
+                'user_id'        => $hendra,
+                'team_id'        => $teamCyber,
+                'file_path'      => 'submissions/hendra_cybershield_ctf.zip',
+                'file_type'      => 'application/zip',
+                'file_size'      => 300000,
+                'submitted_at'   => '2026-08-20 16:30:00',
+                'final_score'    => 150.00,
+                'status'         => 'scored',
+                'revision_count' => 0,
+                'time_bonus'     => 0.00,
+                'created_at'     => now(),
+                'updated_at'     => now(),
+            ],
+            [
+                'competition_id' => $ctf,
+                'round_id'       => $ctfRound,
+                'user_id'        => $indah, // ZeroDay dummy active user
                 'team_id'        => $teamZero,
                 'file_path'      => 'submissions/zeroday_ctf.zip',
                 'file_type'      => 'application/zip',

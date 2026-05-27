@@ -11,6 +11,7 @@ use App\Http\Controllers\Committee\RegistrationVerificationController;
 use App\Http\Controllers\Participant\CompetitionController as ParticipantCompetitionController;
 use App\Http\Controllers\Participant\RegistrationController;
 use App\Http\Controllers\Participant\SubmissionController;
+use App\Http\Controllers\Participant\ContributionController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BroadcastController;
@@ -146,6 +147,10 @@ Route::middleware(['auth', 'verified', 'role:committee'])
         Route::resource('competitions.juries', \App\Http\Controllers\Committee\JuryAssignmentController::class)
             ->names('juries')
             ->only(['index', 'store', 'destroy']);
+
+        // Contribution Stats (Committee view)
+        Route::get('/competitions/{competition}/teams/{team}/contributions', [ContributionController::class, 'show'])
+            ->name('contributions.show');
     });
 
 
@@ -211,6 +216,9 @@ Route::middleware(['auth', 'verified', 'role:participant'])
 
         Route::post('/competitions/{competition}/rounds/{round}/submit', [SubmissionController::class, 'store'])
             ->name('submissions.store');
+
+        Route::get('/competitions/{competition}/teams/{team}/contributions', [ContributionController::class, 'show'])
+            ->name('contributions.show');
     });
 
 // ── Profile

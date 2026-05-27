@@ -43,6 +43,14 @@
                 </select>
             </div>
 
+            <div class="form-group" id="submission_mode_group">
+                <label for="submission_mode" class="form-label">Mode Pengumpulan (Untuk Tim)</label>
+                <select name="submission_mode" id="submission_mode" class="form-control">
+                    <option value="captain_only" {{ old('submission_mode', $competition->submission_mode) == 'captain_only' ? 'selected' : '' }}>Hanya Ketua Tim</option>
+                    <option value="all_members" {{ old('submission_mode', $competition->submission_mode) == 'all_members' ? 'selected' : '' }}>Semua Anggota Tim</option>
+                </select>
+            </div>
+
             <div class="form-group">
                 <label for="category" class="form-label">Kategori Kompetisi</label>
                 <select name="category" id="category" class="form-control" required>
@@ -129,4 +137,22 @@
         </div>
     </form>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const typeSelect = document.getElementById('type');
+        const modeGroup = document.getElementById('submission_mode_group');
+        
+        function toggleMode() {
+            if (typeSelect.value === 'team') {
+                modeGroup.style.display = 'block';
+            } else {
+                modeGroup.style.display = 'none';
+            }
+        }
+        
+        typeSelect.addEventListener('change', toggleMode);
+        toggleMode();
+    });
+</script>
 @endsection

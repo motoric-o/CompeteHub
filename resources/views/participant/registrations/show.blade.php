@@ -203,7 +203,7 @@
                                     <div class="font-bold text-sm">{{ $label }}</div>
                                     <div class="text-xs text-muted-foreground mt-0.5">
                                         @if($doc)
-                                            Uploaded {{ $doc->created_at->diffForHumans() }}
+                                            Uploaded {{ $doc->created_at?->diffForHumans() ?? '-' }}
                                         @else
                                             Dokumen wajib pendaftaran belum diupload.
                                         @endif
