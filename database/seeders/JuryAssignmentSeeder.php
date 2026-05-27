@@ -15,11 +15,13 @@ class JuryAssignmentSeeder extends Seeder
         $hackathon = DB::table('competitions')->where('name', 'Hackathon Nasional 2025')->value('id');
         $cp        = DB::table('competitions')->where('name', 'Competitive Programming Cup')->value('id');
         $uiux      = DB::table('competitions')->where('name', 'UI/UX Design Competition')->value('id');
+        $ctf       = DB::table('competitions')->where('name', 'Siber Defense CTF 2026')->value('id');
 
         DB::table('jury_assignments')->insert([
-            // Jeryko juri di Hackathon & CP
+            // Jeryko juri di Hackathon & CP & CTF
             ['user_id' => $jeryko, 'competition_id' => $hackathon, 'assigned_at' => now()],
             ['user_id' => $jeryko, 'competition_id' => $cp,        'assigned_at' => now()],
+            ['user_id' => $jeryko, 'competition_id' => $ctf,       'assigned_at' => now()],
             // Rico juri di Hackathon & UI/UX
             ['user_id' => $rico,   'competition_id' => $hackathon, 'assigned_at' => now()],
             ['user_id' => $rico,   'competition_id' => $uiux,      'assigned_at' => now()],

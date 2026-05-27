@@ -19,8 +19,12 @@ use App\Http\Controllers\LeaderboardController;
 
 use App\Models\Competition;
 
-Route::get('/', function () {
-    $competitions = Competition::where('status', 'open')->get();
+Route::get('/', function (\Illuminate\Http\Request $request) {
+    $query = Competition::where('status', 'open');
+    if ($request->filled('category')) {
+        $query->where('category', $request->category);
+    }
+    $competitions = $query->get();
     return view('welcome', compact('competitions'));
 })->name('home');
 

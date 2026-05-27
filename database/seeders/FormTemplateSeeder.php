@@ -12,7 +12,8 @@ class FormTemplateSeeder extends Seeder
         $hackathon = DB::table('competitions')->where('name', 'Hackathon Nasional 2025')->value('id');
         $cp        = DB::table('competitions')->where('name', 'Competitive Programming Cup')->value('id');
         $uiux      = DB::table('competitions')->where('name', 'UI/UX Design Competition')->value('id');
-
+        $ctf       = DB::table('competitions')->where('name', 'Siber Defense CTF 2026')->value('id');
+ 
         DB::table('form_templates')->insert([
             [
                 'competition_id' => $hackathon,
@@ -37,6 +38,27 @@ class FormTemplateSeeder extends Seeder
                     ['label' => 'Previous UI/UX Experience', 'type' => 'textarea', 'required' => false],
                     ['label' => 'Student Card', 'type' => 'file', 'required' => true],
                     ['label' => 'Proposal File', 'type' => 'file', 'required' => true],
+                ]),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'competition_id' => $uiux,
+                'name'           => 'Formulir UI/UX Design',
+                'fields'         => json_encode([
+                    ['label' => 'KTP Ketua',       'type' => 'file',   'required' => true],
+                    ['label' => 'Link Portfolio',  'type' => 'url',    'required' => false],
+                ]),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'competition_id' => $ctf,
+                'name'           => 'Formulir CTF 2026',
+                'fields'         => json_encode([
+                    ['label' => 'Kartu Mahasiswa', 'type' => 'file',   'required' => true],
+                    ['label' => 'Bukti Follow IG', 'type' => 'file',   'required' => true],
+                    ['label' => 'ID Discord',      'type' => 'text',   'required' => true],
                 ]),
                 'created_at' => now(),
                 'updated_at' => now(),

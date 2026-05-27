@@ -16,6 +16,7 @@ class Competition extends Model
         'name',
         'description',
         'type',
+        'category',
         'scoring_type_id',
         'time_scoring_threshold',
         'registration_fee',

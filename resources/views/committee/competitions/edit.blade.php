@@ -44,6 +44,17 @@
             </div>
 
             <div class="form-group">
+                <label for="category" class="form-label">Kategori Kompetisi</label>
+                <select name="category" id="category" class="form-control" required>
+                    <option value="Web Development" {{ old('category', $competition->category) == 'Web Development' ? 'selected' : '' }}>Web Development</option>
+                    <option value="Capture The Flag" {{ old('category', $competition->category) == 'Capture The Flag' ? 'selected' : '' }}>Capture The Flag (CTF)</option>
+                    <option value="UI/UX Design" {{ old('category', $competition->category) == 'UI/UX Design' ? 'selected' : '' }}>UI/UX Design</option>
+                    <option value="Competitive Programming" {{ old('category', $competition->category) == 'Competitive Programming' ? 'selected' : '' }}>Competitive Programming</option>
+                    <option value="Other" {{ old('category', $competition->category) == 'Other' ? 'selected' : '' }}>Lainnya (Other)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
                 <label for="scoring_type_id" class="form-label">Metode Penilaian</label>
                 <select name="scoring_type_id" id="scoring_type_id" class="form-control" required>
                     @foreach($scoringTypes as $st)

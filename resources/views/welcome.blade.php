@@ -8,10 +8,10 @@
         <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
         <style>
             .highlight-text {
-                background-image: linear-gradient(to right, var(--primary), var(--secondary));
-                background-repeat: no-repeat;
-                background-position: left center;
-                transition: background-size 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+                background-color: var(--primary);
+                border: 2px solid var(--border);
+                padding: 0 0.5rem;
+                box-shadow: 2px 2px 0px 0px var(--foreground);
             }
         </style>
     </head>
@@ -55,9 +55,7 @@
                 <h2 class="text-4xl md:text-6xl lg:text-7xl font-extrabold mb-6 leading-tight tracking-tight text-foreground"
                     style="opacity: 0; animation: fadeInUp 0.8s ease-out forwards;">
                     Temukan dan Ikuti Berbagai Kompetisi 
-                    <span class="highlight-text px-2 rounded-lg text-foreground mt-2"
-                          :style="show ? 'background-size: 100% 100%' : 'background-size: 0% 100%'"
-                          style="display: inline-block;">
+                    <span class="highlight-text text-foreground mt-2 inline-block rounded-xl">
                         Seru & Menantang
                     </span>
                 </h2>
@@ -72,10 +70,25 @@
         </div>
 
         <div class="container mx-auto px-8 py-20 max-w-7xl" id="competitions">
-            <div class="mb-12 flex justify-between items-end">
+            <div class="mb-12 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
                 <div>
                     <h2 class="text-4xl font-extrabold mb-3">Kompetisi Terbaru</h2>
                     <p class="text-muted-foreground text-lg">Jangan sampai kelewatan kesempatan untuk bersinar.</p>
+                </div>
+
+                <div class="flex gap-2 flex-wrap" style="font-family: var(--font-sans);">
+                    @php
+                        $currentCategory = request('category');
+                        $categories = ['Web Development', 'Capture The Flag', 'UI/UX Design', 'Competitive Programming', 'Other'];
+                    @endphp
+                    <a href="{{ route('home') }}#competitions" class="btn btn-sm {{ !$currentCategory ? 'btn-primary' : 'btn-outline bg-card' }}">
+                        Semua
+                    </a>
+                    @foreach($categories as $cat)
+                        <a href="{{ route('home', ['category' => $cat]) }}#competitions" class="btn btn-sm {{ $currentCategory === $cat ? 'btn-primary' : 'btn-outline bg-card' }}">
+                            {{ $cat }}
+                        </a>
+                    @endforeach
                 </div>
             </div>
 
@@ -93,7 +106,10 @@
                         @endif
                         
                         <div class="p-6 flex flex-col flex-grow">
-                            <div class="flex items-center gap-3 mb-4">
+                            <div class="flex items-center gap-2 mb-4 flex-wrap">
+                                <span class="px-3 py-1 bg-primary text-primary-foreground text-xs font-bold border border-border rounded-full shadow-[2px_2px_0px_0px_var(--foreground)]">
+                                    {{ $competition->category }}
+                                </span>
                                 <span class="px-3 py-1 bg-secondary text-secondary-foreground text-xs font-bold border border-border rounded-full shadow-[2px_2px_0px_0px_var(--foreground)]">
                                     {{ $competition->type === 'team' ? 'Tim' : 'Individu' }}
                                 </span>

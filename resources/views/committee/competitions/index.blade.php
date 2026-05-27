@@ -27,7 +27,10 @@
                             <span class="badge {{ $competition->type === 'team' ? 'badge-primary' : 'badge-secondary' }}" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">
                                 {{ ucfirst($competition->type) }}
                             </span>
-                            <span class="badge" style="font-size: 0.7rem; padding: 0.2rem 0.5rem; background: var(--color-bg-elevated); color: var(--color-text-muted);">
+                            <span class="badge" style="font-size: 0.7rem; padding: 0.2rem 0.5rem; background: var(--secondary); color: var(--secondary-foreground); border: 1px solid var(--border);">
+                                {{ $competition->category }}
+                            </span>
+                            <span class="badge" style="font-size: 0.7rem; padding: 0.2rem 0.5rem; background: var(--muted); color: var(--muted-foreground); border: 1px solid var(--border);">
                                 {{ ucfirst($competition->status) }}
                             </span>
                         </div>
