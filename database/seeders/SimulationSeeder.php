@@ -20,12 +20,16 @@ class SimulationSeeder extends Seeder
                 'role' => 'committee',
             ]
         );
+        $judgeScoreId = \App\Models\ScoringType::where('name', 'Judge Score')->value('id') 
+            ?? \App\Models\ScoringType::firstOrCreate(['name' => 'Judge Score'])->id;
+
         $competition = Competition::firstOrCreate(
             ['name' => 'Grand Hackathon 2026'],
             [
                 'user_id' => $committee->id,
                 'type' => 'individual',
-                'scoring_type' => 'judge_score',
+                'category' => 'Web Development',
+                'scoring_type_id' => $judgeScoreId,
                 'description' => 'A premier coding competition for innovators. Build the future.',
                 'registration_fee' => 50000,
                 'quota' => 100,
