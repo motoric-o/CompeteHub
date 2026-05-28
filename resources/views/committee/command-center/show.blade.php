@@ -242,26 +242,80 @@
     </div>
 
     {{-- Bulk Validate Confirmation Modal --}}
-    <div id="bulk-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; display:flex; align-items:center; justify-content:center;" class="hidden">
+    <div id="bulk-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center;"
+        onclick="closeBulkModalOnBackdrop(event)">
         <div class="card" style="max-width: 400px; width: 90%;">
             <h3 class="text-lg font-bold mb-2">Konfirmasi Validasi Massal</h3>
-            <p class="text-sm text-muted-foreground mb-4">
-                Anda akan menjalankan validasi otomatis pada {{ $dashboard->newRegistrationsCount }} pendaftaran.
-                Sistem akan memeriksa kelengkapan dokumen, akun, dan pembayaran untuk setiap pendaftaran.
-            </p>
+
+            @if($dashboard->newRegistrationsCount > 0)
+                <p class="text-sm text-muted-foreground mb-4">
+                    Anda akan menjalankan validasi otomatis pada {{ $dashboard->newRegistrationsCount }} pendaftaran.
+                    Sistem akan memeriksa kelengkapan dokumen, akun, dan pembayaran untuk setiap pendaftaran.
+                </p>
+            @else
+                <p class="text-sm text-muted-foreground mb-4">
+                    Tidak ada pendaftaran baru yang perlu divalidasi saat ini.
+                </p>
+            @endif
+
             <div class="flex gap-3">
-                <button onclick="document.getElementById('bulk-modal').classList.add('hidden')"
-                        class="btn btn-secondary flex-1">Batal</button>
-                <button onclick="document.getElementById('bulk-validate-form').submit()"
-                        class="btn btn-primary flex-1">Ya, Validasi Sekarang</button>
+                <button type="button" onclick="closeBulkModal()"
+                        class="btn btn-secondary flex-1">
+                    Batal
+                </button>
+
+                @if($dashboard->newRegistrationsCount > 0)
+                    <button type="button" id="bulk-submit-button" onclick="submitBulkValidate()"
+                            class="btn btn-primary flex-1">
+                        Ya, Validasi Sekarang
+                    </button>
+                @else
+                    <button type="button" onclick="closeBulkModal()"
+                            class="btn btn-primary flex-1">
+                        Oke
+                    </button>
+                @endif
             </div>
         </div>
     </div>
 
     <script>
         function confirmBulkValidate() {
-            document.getElementById('bulk-modal').classList.remove('hidden');
-            document.getElementById('bulk-modal').style.display = 'flex';
+            const modal = document.getElementById('bulk-modal');
+            if (!modal) return;
+
+            modal.style.display = 'flex';
+        }
+
+        function closeBulkModal() {
+            const modal = document.getElementById('bulk-modal');
+            if (!modal) return;
+
+            modal.style.display = 'none';
+        }
+
+        function closeBulkModalOnBackdrop(event) {
+            if (event.target.id === 'bulk-modal') {
+                closeBulkModal();
+            }
+        }
+
+        function submitBulkValidate() {
+            const form = document.getElementById('bulk-validate-form');
+            const button = document.getElementById('bulk-submit-button');
+
+            if (!form) {
+                closeBulkModal();
+                alert('Tidak ada pendaftaran baru yang perlu divalidasi.');
+                return;
+            }
+
+            if (button) {
+                button.disabled = true;
+                button.innerText = 'Memvalidasi...';
+            }
+
+            form.submit();
         }
     </script>
 

@@ -86,58 +86,86 @@
 
         {{-- ── SESSION MESSAGES ─────────────────────────────────────────── --}}
         @if(session('success'))
-        <div class="flex items-center gap-3 p-4 rounded-lg" style="background: rgba(34,197,94,0.05); border: 1px solid rgba(34,197,94,0.3);">
+        <div class="flex items-center gap-3 p-4 rounded-lg" style="background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.35);">
             <span class="text-lg">✅</span>
             <span class="text-sm font-medium">{{ session('success') }}</span>
         </div>
         @endif
+
         @if(session('error'))
-        <div class="flex items-center gap-3 p-4 rounded-lg" style="background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.3);">
+        <div class="flex items-center gap-3 p-4 rounded-lg" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.35);">
             <span class="text-lg">❌</span>
             <span class="text-sm font-medium">{{ session('error') }}</span>
         </div>
         @endif
 
+        @if($errors->any())
+        <div class="p-4 rounded-lg" style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.35);">
+            <div class="flex items-center gap-2 mb-2">
+                <span class="text-lg">⚠️</span>
+                <span class="text-sm font-bold">Ada input yang perlu diperbaiki.</span>
+            </div>
+
+            <ul class="text-sm list-disc pl-6 space-y-1">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+        @endif
+
         {{-- ── ONE-CLICK REVIEW ACTIONS ────────────────── --}}
-        @if(!in_array($registration->status, ['verified', 'rejected']))
         <div class="card" style="border: 2px solid var(--border);">
             <h3 class="text-base font-bold mb-4">⚡ Tindakan Cepat</h3>
+
             <div class="flex flex-wrap gap-3">
 
                 {{-- Run CoR Validation --}}
-                <form method="POST" action="{{ route('committee.registrations.validate', [$competition, $registration]) }}">
-                    @csrf
-                    <button type="submit" class="btn btn-secondary text-sm">
-                        🔍 Jalankan Validasi CoR
-                    </button>
-                </form>
+                @if(!in_array($registration->status, ['verified', 'rejected']))
+                    <form method="POST" action="{{ route('committee.registrations.validate', [$competition, $registration]) }}">
+                        @csrf
+                        <button type="submit" class="btn btn-secondary text-sm">
+                            🔍 Jalankan Validasi CoR
+                        </button>
+                    </form>
+                @endif
 
-                {{-- Approve Final (only if payment_ok) --}}
+                {{-- Approve Final --}}
                 @if($registration->status === 'payment_ok')
-                <form method="POST" action="{{ route('committee.registrations.approve', [$competition, $registration]) }}">
-                    @csrf
-                    <button type="submit" class="btn btn-primary text-sm"
-                            onclick="return confirm('Setujui registrasi ini sebagai VERIFIED (approved final)?')">
-                        ✅ Setujui (Final)
-                    </button>
-                </form>
+                    <form method="POST" action="{{ route('committee.registrations.approve', [$competition, $registration]) }}">
+                        @csrf
+                        <button type="submit" class="btn btn-primary text-sm"
+                                onclick="return confirm('Setujui registrasi ini sebagai VERIFIED (approved final)?')">
+                            ✅ Setujui Final
+                        </button>
+                    </form>
                 @endif
 
                 {{-- Send Reminder --}}
-                <button type="button" onclick="document.getElementById('reminder-modal').classList.remove('hidden')"
-                        class="btn btn-secondary text-sm">
-                    📬 Kirim Reminder
-                </button>
+                @if($registration->status !== 'rejected')
+                    <button type="button" onclick="openReviewModal('reminder-modal')"
+                            class="btn btn-secondary text-sm">
+                        📬 Kirim Reminder
+                    </button>
+                @endif
 
                 {{-- Reject --}}
-                <button type="button" onclick="document.getElementById('reject-modal').classList.remove('hidden')"
-                        class="btn btn-secondary text-sm" style="color: var(--destructive); border-color: rgba(239,68,68,0.3);">
-                    🚫 Tolak Registrasi
-                </button>
+                @if(!in_array($registration->status, ['verified', 'rejected']))
+                    <button type="button" onclick="openReviewModal('reject-modal')"
+                            class="btn btn-secondary text-sm"
+                            style="color: var(--destructive); border-color: rgba(239,68,68,0.3);">
+                        🚫 Tolak Registrasi
+                    </button>
+                @endif
+
+                @if(in_array($registration->status, ['verified', 'rejected']))
+                    <span class="text-sm text-muted-foreground flex items-center">
+                        Status registrasi sudah {{ ucfirst(str_replace('_', ' ', $registration->status)) }}.
+                    </span>
+                @endif
 
             </div>
         </div>
-        @endif
 
         {{-- ── VALIDATION EXPLANATION PANEL ──────────────────────────────── --}}
         <div class="card">
@@ -338,53 +366,119 @@
     </div>
 
     {{-- ── REJECT MODAL ─────────────────────────────────────────────── --}}
-    <div id="reject-modal" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; display:flex; align-items:center; justify-content:center;">
-        <div class="card" style="max-width: 480px; width: 90%;">
+    <div id="reject-modal"
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center;"
+        onclick="closeReviewModalOnBackdrop(event, 'reject-modal')">
+
+        <div class="card" style="max-width: 480px; width: 90%;" onclick="event.stopPropagation()">
             <h3 class="text-lg font-bold mb-2">Tolak Registrasi</h3>
+
             <p class="text-sm text-muted-foreground mb-4">
                 Berikan alasan penolakan yang jelas. Peserta akan melihat alasan ini.
             </p>
+
             <form method="POST" action="{{ route('committee.registrations.reject', [$competition, $registration]) }}">
                 @csrf
-                <textarea name="reason" rows="3" required minlength="10" maxlength="500" placeholder="Contoh: Dokumen KTP tidak terbaca, foto buram..."
-                    style="width:100%; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--foreground); font-size: 0.875rem; margin-bottom: 12px; resize: vertical;"></textarea>
+
+                <textarea name="reason" rows="3" required minlength="10" maxlength="500"
+                    placeholder="Contoh: Dokumen KTP tidak terbaca, foto buram..."
+                    style="width:100%; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--foreground); font-size: 0.875rem; margin-bottom: 12px; resize: vertical;">{{ old('reason') }}</textarea>
+
                 <div class="flex gap-3">
-                    <button type="button" onclick="document.getElementById('reject-modal').classList.add('hidden')"
-                            class="btn btn-secondary flex-1">Batal</button>
-                    <button type="submit" class="btn btn-primary flex-1" style="background: var(--destructive);">Tolak Registrasi</button>
+                    <button type="button" onclick="closeReviewModal('reject-modal')"
+                            class="btn btn-secondary flex-1">
+                        Batal
+                    </button>
+
+                    <button type="submit" class="btn btn-primary flex-1" style="background: var(--destructive);">
+                        Tolak Registrasi
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
     {{-- ── REMINDER MODAL ───────────────────────────────────────────── --}}
-    <div id="reminder-modal" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; display:flex; align-items:center; justify-content:center;">
-        <div class="card" style="max-width: 480px; width: 90%;">
+    <div id="reminder-modal"
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center;"
+        onclick="closeReviewModalOnBackdrop(event, 'reminder-modal')">
+
+        <div class="card" style="max-width: 480px; width: 90%;" onclick="event.stopPropagation()">
             <h3 class="text-lg font-bold mb-2">Kirim Reminder</h3>
+
             <p class="text-sm text-muted-foreground mb-4">
                 Kirim pesan pengingat kepada peserta. <br>
-                Penerima: <strong>{{ $registration->user?->email ?? $registration->team?->captain?->email ?? '—' }}</strong>
+                Penerima:
+                <strong>{{ $registration->user?->email ?? $registration->team?->captain?->email ?? '—' }}</strong>
             </p>
-            <form method="POST" action="{{ route('committee.registrations.reminder', [$competition, $registration]) }}">
+
+            <form id="reminder-form" method="POST" action="{{ route('committee.registrations.reminder', [$competition, $registration]) }}">
                 @csrf
+
                 <textarea name="message" rows="3" required minlength="10" maxlength="1000"
                     placeholder="Contoh: Mohon segera melengkapi dokumen yang diperlukan sebelum tanggal 30 Mei 2025..."
-                    style="width:100%; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--foreground); font-size: 0.875rem; margin-bottom: 12px; resize: vertical;"></textarea>
+                    style="width:100%; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--foreground); font-size: 0.875rem; margin-bottom: 12px; resize: vertical;">{{ old('message') }}</textarea>
+
                 <div class="flex gap-3">
-                    <button type="button" onclick="document.getElementById('reminder-modal').classList.add('hidden')"
-                            class="btn btn-secondary flex-1">Batal</button>
-                    <button type="submit" class="btn btn-primary flex-1">📬 Kirim</button>
+                    <button type="button" onclick="closeReviewModal('reminder-modal')"
+                            class="btn btn-secondary flex-1">
+                        Batal
+                    </button>
+
+                    <button type="submit" id="reminder-submit" class="btn btn-primary flex-1">
+                        📬 Kirim
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        // Close modals when clicking backdrop
-        ['reject-modal', 'reminder-modal'].forEach(id => {
-            document.getElementById(id)?.addEventListener('click', function(e) {
-                if (e.target === this) this.classList.add('hidden');
-            });
+        function openReviewModal(id) {
+            const modal = document.getElementById(id);
+
+            if (!modal) {
+                return;
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function closeReviewModal(id) {
+            const modal = document.getElementById(id);
+
+            if (!modal) {
+                return;
+            }
+
+            modal.style.display = 'none';
+        }
+
+        function closeReviewModalOnBackdrop(event, id) {
+            if (event.target.id === id) {
+                closeReviewModal(id);
+            }
+        }
+
+        document.getElementById('reminder-form')?.addEventListener('submit', function () {
+            const button = document.getElementById('reminder-submit');
+
+            if (button) {
+                button.disabled = true;
+                button.innerText = 'Mengirim...';
+            }
         });
+
+        @if(session('open_modal') === 'reminder-modal')
+            document.addEventListener('DOMContentLoaded', function () {
+                openReviewModal('reminder-modal');
+            });
+        @endif
+
+        @if(session('open_modal') === 'reject-modal')
+            document.addEventListener('DOMContentLoaded', function () {
+                openReviewModal('reject-modal');
+            });
+        @endif
     </script>
 </x-app-layout>

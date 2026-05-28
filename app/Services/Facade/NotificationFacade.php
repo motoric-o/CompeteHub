@@ -66,7 +66,7 @@ class NotificationFacade
                 ->where(function($q) use ($userId) {
                     $q->where('user_id', $userId)
                       ->orWhereHas('team', function($t) use ($userId) {
-                          $t->where('captain_id', $userId);
+                          $t->where('user_id', $userId);
                       });
                 })->first();
 
@@ -276,60 +276,87 @@ class NotificationFacade
     /**
      * Broadcast email manual ke semua peserta dalam kompetisi tertentu (Dadakan).
      */
-    public function broadcastToParticipants(int $competitionId, string $subject, string $body, ?int $triggeredBy = null): void
+    public function broadcastToParticipants(int $competitionId, string $subject, string $body, ?int $triggeredBy = null): array
     {
-        $competition = Competition::with('teams.members')->findOrFail($competitionId);
+        $competition = Competition::with([
+            'teams.members',
+            'registrations.user',
+            'registrations.team.captain',
+            'registrations.team.members',
+        ])->findOrFail($competitionId);
 
         $participants = collect();
 
         if ($competition->type === 'team') {
-            // Team-based: collect all team members
             foreach ($competition->teams as $team) {
+                if ($team->captain) {
+                    $participants->push($team->captain);
+                }
+
                 foreach ($team->members as $member) {
                     $participants->push($member);
                 }
             }
         } else {
-            // Individual: collect participants via registrations.user_id
-            // Excludes rejected registrations — only notify active participants
-            $participants = User::whereIn('id',
-                \App\Models\Registration::where('competition_id', $competitionId)
-                    ->whereNotIn('status', ['rejected'])
-                    ->pluck('user_id')
-                    ->filter() // remove nulls (team registrations have null user_id)
-            )->get();
+            $participants = $competition->registrations
+                ->whereNotIn('status', ['rejected'])
+                ->pluck('user')
+                ->filter();
         }
 
-        $participants = $participants->unique('id');
+        $participants = $participants
+            ->filter(fn ($user) => filled($user?->email))
+            ->unique('id')
+            ->values();
+
+        if ($participants->isEmpty()) {
+            throw new \RuntimeException('Tidak ada peserta aktif yang memiliki email pada kompetisi ini.');
+        }
+
+        $sentCount = 0;
+        $failedCount = 0;
 
         foreach ($participants as $user) {
+            $emailBody = "Halo {$user->name},<br><br>{$body}<br><br>Salam,<br>Panitia {$competition->name}";
+
             try {
-                $this->mailService->send($user->email, $subject, "Halo {$user->name},<br><br>{$body}");
+                $sent = $this->mailService->send($user->email, $subject, $emailBody);
+
+                if (! $sent) {
+                    throw new \RuntimeException('Mail service gagal mengirim email. Cek konfigurasi MAIL di file .env.');
+                }
+
                 $status = 'sent';
                 $error = null;
+                $sentCount++;
             } catch (\Throwable $e) {
                 $status = 'failed';
                 $error = $e->getMessage();
+                $failedCount++;
             }
 
             if ($this->logService) {
-                $registration = \App\Models\Registration::where('competition_id', $competitionId)
-                    ->where(function($q) use ($user) {
-                        $q->where('user_id', $user->id)
-                          ->orWhereHas('team', function($t) use ($user) {
-                              $t->where('captain_id', $user->id)
-                                ->orWhereHas('members', function($m) use ($user) {
-                                    $m->where('users.id', $user->id);
-                                });
-                          });
-                    })->first();
+                $registration = $competition->registrations
+                    ->first(function ($registration) use ($user) {
+                        if ((int) $registration->user_id === (int) $user->id) {
+                            return true;
+                        }
+
+                        if ($registration->team && (int) $registration->team->user_id === (int) $user->id) {
+                            return true;
+                        }
+
+                        return $registration->team?->members
+                            ? $registration->team->members->contains('id', $user->id)
+                            : false;
+                    });
 
                 $this->logService->record(
                     eventType: 'broadcast',
                     recipientEmail: $user->email,
                     subject: $subject,
                     status: $status,
-                    payload: ['body' => $body],
+                    payload: ['body' => $emailBody],
                     notifiableType: 'registration',
                     notifiableId: $registration?->id,
                     competitionId: $competitionId,
@@ -338,6 +365,16 @@ class NotificationFacade
                 );
             }
         }
+
+        if ($sentCount === 0) {
+            throw new \RuntimeException('Semua email gagal dikirim. Cek konfigurasi MAIL di file .env atau lihat Log Notifikasi.');
+        }
+
+        return [
+            'sent' => $sentCount,
+            'failed' => $failedCount,
+            'total' => $participants->count(),
+        ];
     }
 
     /**
@@ -347,15 +384,25 @@ class NotificationFacade
     {
         $registration = \App\Models\Registration::with(['user', 'team.captain', 'competition'])->findOrFail($registrationId);
         $recipient = $registration->user ?? $registration->team?->captain;
+
         if (! $recipient) {
-            throw new \RuntimeException("Tidak bisa menemukan penerima notifikasi.");
+            throw new \RuntimeException('Tidak bisa menemukan penerima notifikasi.');
         }
 
-        $subject = "Reminder Registrasi — " . $registration->competition->name;
-        $body = "Halo {$recipient->name},<br><br>{$message}";
+        if (blank($recipient->email)) {
+            throw new \RuntimeException('Peserta tidak memiliki alamat email.');
+        }
+
+        $subject = 'Reminder Registrasi — ' . $registration->competition->name;
+        $body = "Halo {$recipient->name},<br><br>{$message}<br><br>Salam,<br>Panitia {$registration->competition->name}";
 
         try {
-            $this->mailService->send($recipient->email, $subject, $body);
+            $sent = $this->mailService->send($recipient->email, $subject, $body);
+
+            if (! $sent) {
+                throw new \RuntimeException('Mail service gagal mengirim email. Cek konfigurasi MAIL di file .env.');
+            }
+
             $status = 'sent';
             $error = null;
         } catch (\Throwable $e) {
@@ -379,7 +426,7 @@ class NotificationFacade
         }
 
         if ($status === 'failed') {
-            throw new \RuntimeException("Gagal mengirim email: " . $error);
+            throw new \RuntimeException($error);
         }
     }
 

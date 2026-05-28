@@ -201,7 +201,6 @@ class ReviewCommandExecutor
         int $actorId,
         string $message,
     ): ReviewResult {
-        // Only send reminders for non-rejected registrations
         if ($registration->status === 'rejected') {
             return ReviewResult::failure("Tidak bisa mengirim reminder ke registrasi yang sudah ditolak.");
         }
@@ -210,13 +209,14 @@ class ReviewCommandExecutor
             $facade = app(\App\Services\Facade\NotificationFacade::class);
 
             $recipient = $registration->user ?? $registration->team?->captain;
+
             if (! $recipient) {
                 return ReviewResult::failure("Tidak bisa menemukan penerima notifikasi.");
             }
 
             $facade->sendReminderNotification(
                 $registration->id,
-                $message,
+                trim($message),
                 $actorId
             );
 
@@ -235,7 +235,7 @@ class ReviewCommandExecutor
         }
 
         return ReviewResult::success(
-            "Reminder berhasil dikirim.",
+            "Reminder berhasil dikirim ke {$recipient->email}.",
             affectedCount: 1,
         );
     }

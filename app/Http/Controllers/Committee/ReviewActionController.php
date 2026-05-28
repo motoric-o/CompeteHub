@@ -9,6 +9,7 @@ use App\Models\Registration;
 use App\Services\Review\ReviewCommandExecutor;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 /**
  * ReviewActionController — Features 7 & 8: One-Click Review Actions.
@@ -89,9 +90,21 @@ class ReviewActionController extends Controller
         $this->authorizeCommittee($competition);
         $this->ensureRegistrationBelongsToCompetition($registration, $competition);
 
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'message' => ['required', 'string', 'min:10', 'max:1000'],
+        ], [
+            'message.required' => 'Pesan reminder wajib diisi.',
+            'message.min' => 'Pesan reminder minimal 10 karakter.',
+            'message.max' => 'Pesan reminder maksimal 1000 karakter.',
         ]);
+
+        if ($validator->fails()) {
+            return redirect()
+                ->route('committee.registrations.show', [$competition, $registration])
+                ->withErrors($validator)
+                ->withInput()
+                ->with('open_modal', 'reminder-modal');
+        }
 
         $result = $this->executor->sendReminder(
             registration: $registration,
@@ -130,7 +143,7 @@ class ReviewActionController extends Controller
         $sessionKey = $result->success ? 'success' : 'error';
 
         return redirect()
-            ->route('committee.registrations.index', $competition)
+            ->route('committee.command-center.show', $competition)
             ->with($sessionKey, $result->message)
             ->with('bulk_result_details', $result->details);
     }
