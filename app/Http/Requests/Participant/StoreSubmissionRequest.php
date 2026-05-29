@@ -23,6 +23,14 @@ class StoreSubmissionRequest extends FormRequest
      */
     public function rules(): array
     {
+        $competition = $this->route('competition');
+
+        if ($competition && $competition->isQuiz()) {
+            return [
+                'answers' => ['required', 'array'],
+            ];
+        }
+
         return [
             'submission_file' => ['required', 'file', 'mimes:pdf,zip,mp4', 'max:20480'], // Max 20MB
         ];
@@ -39,6 +47,7 @@ class StoreSubmissionRequest extends FormRequest
             'submission_file.required' => 'Please upload a submission file.',
             'submission_file.mimes' => 'The file must be a PDF, ZIP, or MP4 format.',
             'submission_file.max' => 'The file size must not exceed 20MB.',
+            'answers.required' => 'Please answer the quiz questions.',
         ];
     }
 }

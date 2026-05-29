@@ -21,7 +21,60 @@ class ScoringService implements ScoringServiceInterface
     {
         return DB::transaction(function () use ($submissionId, $judgeUserId, $criteriaScores, $notes) {
             $submission = Submission::findOrFail($submissionId);
-            $criteria = ScoringCriterion::where('competition_id', $submission->competition_id)->get()->keyBy('id');
+            $competition = $submission->competition;
+            $round = $submission->round;
+            
+            if ($competition->isQuiz()) {
+                $totalScore = 0;
+                $answers = $submission->quizAnswers()->with('question')->get();
+                
+                foreach ($answers as $answer) {
+                    if ($answer->question->question_type === 'essay') {
+                        $essayScore = (float) ($criteriaScores[$answer->id] ?? 0.0);
+                        $answer->update([
+                            'score' => $essayScore,
+                            'is_correct' => $essayScore > 0,
+                        ]);
+                        $totalScore += $essayScore;
+                    } else {
+                        $totalScore += (float) ($answer->score ?? 0.0);
+                    }
+                }
+
+                $scoreRecord = Score::updateOrCreate(
+                    [
+                        'submission_id' => $submissionId,
+                        'user_id'       => $judgeUserId,
+                    ],
+                    [
+                        'score'     => $totalScore,
+                        'notes'     => $notes,
+                        'scored_at' => now(),
+                    ]
+                );
+
+                $avgScore = $submission->fresh()->scores()->avg('score') ?? $totalScore;
+
+                $submission->update([
+                    'final_score' => $avgScore,
+                    'status'      => 'scored',
+                ]);
+
+                $subject = new ScoringSubject();
+                $subject->attach(new LeaderboardObserver());
+                $subject->attach(new EmailNotifierObserver());
+                $subject->notify('score_published', [
+                    'submission_id' => $submissionId,
+                    'user_id'       => $submission->user_id,
+                    'team_id'       => $submission->team_id,
+                    'score'         => $avgScore,
+                ]);
+
+                return $scoreRecord;
+            }
+
+            // For Judge Score, criteria belong to the round
+            $criteria = ScoringCriterion::where('round_id', $round->id)->get()->keyBy('id');
 
             $totalWeightedScore = 0;
             foreach ($criteria as $criterionId => $criterion) {

@@ -112,7 +112,12 @@ class ScoringController extends Controller
         $criterias = $competition->scoringCriteria()->get();
         $myCriterionScores = $myScore ? $myScore->criterionScores->keyBy('criterion_id') : collect();
 
-        return view('judge.submissions.score', compact('competition', 'submission', 'myScore', 'allScores', 'criterias', 'myCriterionScores'));
+        $quizAnswers = collect();
+        if ($competition->isQuiz()) {
+            $quizAnswers = $submission->quizAnswers()->with('question')->get();
+        }
+
+        return view('judge.submissions.score', compact('competition', 'submission', 'myScore', 'allScores', 'criterias', 'myCriterionScores', 'quizAnswers'));
     }
 
     /**

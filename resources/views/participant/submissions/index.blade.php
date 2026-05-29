@@ -60,9 +60,12 @@
 
                                                     <div class="flex flex-wrap gap-4 text-sm mt-3">
                                                         @if($submission->final_score !== null)
+                                                            @php
+                                                                $maxScore = $competition->isQuiz() ? $round->quizQuestions->sum('points') : 100;
+                                                            @endphp
                                                             <div class="border border-gray-200 px-3 py-1.5 rounded-md">
-                                                                <span class="text-gray-500 text-xs font-medium uppercase tracking-wider block">Judge Score</span>
-                                                                <span class="font-bold text-gray-900">{{ $submission->final_score }}<span class="text-gray-400 font-normal">/100</span></span>
+                                                                <span class="text-gray-500 text-xs font-medium uppercase tracking-wider block">{{ $competition->isQuiz() ? 'Quiz Score' : 'Judge Score' }}</span>
+                                                                <span class="font-bold text-gray-900">{{ floatval($submission->final_score) }}<span class="text-gray-400 font-normal">/{{ $maxScore }}</span></span>
                                                             </div>
                                                         @endif
                                                         <div class="border border-gray-200 px-3 py-1.5 rounded-md">

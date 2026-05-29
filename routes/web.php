@@ -127,6 +127,18 @@ Route::middleware(['auth', 'verified', 'role:committee'])
         // Rounds
         Route::resource('competitions.rounds', \App\Http\Controllers\Committee\RoundController::class)
             ->names('rounds');
+        Route::post('competitions/{competition}/rounds/{round}/complete-and-next', [\App\Http\Controllers\Committee\RoundController::class, 'completeAndNext'])
+            ->name('rounds.complete-and-next');
+
+        // Quiz Questions
+        Route::get('competitions/{competition}/rounds/{round}/questions', [\App\Http\Controllers\Committee\QuizQuestionController::class, 'index'])
+            ->name('rounds.questions.index');
+        Route::post('competitions/{competition}/rounds/{round}/questions', [\App\Http\Controllers\Committee\QuizQuestionController::class, 'store'])
+            ->name('rounds.questions.store');
+        Route::put('competitions/{competition}/rounds/{round}/questions/{question}', [\App\Http\Controllers\Committee\QuizQuestionController::class, 'update'])
+            ->name('rounds.questions.update');
+        Route::delete('competitions/{competition}/rounds/{round}/questions/{question}', [\App\Http\Controllers\Committee\QuizQuestionController::class, 'destroy'])
+            ->name('rounds.questions.destroy');
 
         // Brackets
         Route::post('competitions/{competition}/rounds/{round}/brackets/auto-generate', [\App\Http\Controllers\Committee\BracketController::class, 'autoGenerate'])

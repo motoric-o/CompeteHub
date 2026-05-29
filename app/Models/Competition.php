@@ -18,6 +18,7 @@ class Competition extends Model
         'type',
         'category',
         'submission_mode',
+        'competition_system',
         'scoring_type_id',
         'time_scoring_threshold',
         'registration_fee',
@@ -78,6 +79,11 @@ class Competition extends Model
     public function isTeamBased(): bool
     {
         return $this->type === 'team';
+    }
+
+    public function isQuiz(): bool
+    {
+        return $this->competition_system === 'quiz';
     }
 
     public function isAllMembersSubmit(): bool

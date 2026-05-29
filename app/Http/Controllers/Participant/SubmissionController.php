@@ -128,7 +128,9 @@ class SubmissionController extends Controller
 
         $bonusPreview = $this->scoringService->previewNextTimeBonus($competition, $round, $submission);
 
-        return view('participant.submissions.create', compact('competition', 'round', 'submission', 'bonusPreview'));
+        $questions = $round->quizQuestions()->orderBy('id')->get();
+
+        return view('participant.submissions.create', compact('competition', 'round', 'submission', 'bonusPreview', 'questions'));
     }
 
     public function store(StoreSubmissionRequest $request, Competition $competition, Round $round)
@@ -143,8 +145,17 @@ class SubmissionController extends Controller
             return redirect()->route('participant.submissions.index', $competition)->with('error', 'The deadline for this round has passed.');
         }
 
-        $file = $request->file('submission_file');
-        $filePath = $file->store('submissions/' . $competition->id . '/' . $round->id, 'public');
+        $isQuiz = $competition->isQuiz();
+        $filePath = null;
+        $fileType = null;
+        $fileSize = null;
+
+        if (!$isQuiz) {
+            $file = $request->file('submission_file');
+            $filePath = $file->store('submissions/' . $competition->id . '/' . $round->id, 'public');
+            $fileType = $file->getClientOriginalExtension();
+            $fileSize = $file->getSize();
+        }
 
         $submission = $this->findExistingSubmission($competition, $round, $data);
 
@@ -160,7 +171,7 @@ class SubmissionController extends Controller
         $subject->attach(new EmailNotifierObserver());
 
         if ($submission) {
-            if ($submission->file_path) {
+            if (!$isQuiz && $submission->file_path) {
                 Storage::disk('public')->delete($submission->file_path);
             }
 
@@ -168,13 +179,17 @@ class SubmissionController extends Controller
 
             $submission->update([
                 'file_path'      => $filePath,
-                'file_type'      => $file->getClientOriginalExtension(),
-                'file_size'      => $file->getSize(),
+                'file_type'      => $fileType,
+                'file_size'      => $fileSize,
                 'status'         => 'submitted',
                 'revision_count' => $newRevisionCount,
             ]);
 
-            $this->scoringService->recalculateAllTimeBonuses($competition, $round);
+            if ($isQuiz) {
+                $this->saveQuizAnswers($submission, $request->input('answers', []));
+            }
+
+            $this->applyAutoScoring($submission, $competition, $round);
             $submission->refresh();
 
             $subject->notify('submission_revised', [
@@ -193,14 +208,18 @@ class SubmissionController extends Controller
                 'user_id'        => $data['user_id'],
                 'team_id'        => $data['team_id'],
                 'file_path'      => $filePath,
-                'file_type'      => $file->getClientOriginalExtension(),
-                'file_size'      => $file->getSize(),
+                'file_type'      => $fileType,
+                'file_size'      => $fileSize,
                 'status'         => 'submitted',
                 'revision_count' => 0,
                 'time_bonus'     => 0,
             ]);
 
-            $this->scoringService->recalculateAllTimeBonuses($competition, $round);
+            if ($isQuiz) {
+                $this->saveQuizAnswers($submission, $request->input('answers', []));
+            }
+
+            $this->applyAutoScoring($submission, $competition, $round);
             $submission->refresh();
             $timeBonus = $submission->time_bonus ?? 0;
 
@@ -218,5 +237,45 @@ class SubmissionController extends Controller
         }
 
         return redirect()->route('participant.submissions.index', $competition)->with('success', $message);
+    }
+
+    private function saveQuizAnswers(Submission $submission, array $answers): void
+    {
+        foreach ($answers as $questionId => $answerText) {
+            $question = \App\Models\QuizQuestion::find($questionId);
+            if ($question) {
+                $isCorrect = null;
+                $score = 0;
+                if ($question->question_type === 'multiple_choice') {
+                    $isCorrect = ($answerText === $question->correct_answer);
+                    $score = $isCorrect ? $question->points : 0;
+                }
+                \App\Models\QuizAnswer::updateOrCreate(
+                    [
+                        'submission_id' => $submission->id,
+                        'question_id'   => $questionId,
+                    ],
+                    [
+                        'answer_text' => $answerText,
+                        'is_correct'  => $isCorrect,
+                        'score'       => $score,
+                    ]
+                );
+            }
+        }
+    }
+
+    private function applyAutoScoring(Submission $submission, Competition $competition, Round $round): void
+    {
+        $this->scoringService->recalculateAllTimeBonuses($competition, $round);
+
+        if ($competition->isQuiz() && $competition->scoringType && $competition->scoringType->name === 'Quiz Automatic') {
+            $strategy = new \App\Core\Scoring\QuizAutomaticScoringStrategy();
+            $finalScore = $strategy->calculate($submission->quizAnswers()->get());
+            $submission->update([
+                'final_score' => $finalScore,
+                'status'      => 'scored',
+            ]);
+        }
     }
 }

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->longText('rules')->nullable();
             $table->enum('type', ['individual', 'team']);
+            $table->enum('competition_system', ['submission', 'quiz'])->default('submission');
             $table->foreignId('scoring_type_id')->constrained()->restrictOnDelete();
             $table->decimal('time_scoring_threshold', 10, 2)->nullable();
             $table->decimal('registration_fee', 12, 2)->default(0);

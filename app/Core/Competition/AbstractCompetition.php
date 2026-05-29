@@ -8,6 +8,7 @@ use App\Models\Submission;
 use App\Models\User;
 use App\Core\Scoring\TimeBasedScoringStrategy;
 use App\Core\Scoring\JudgeBasedScoringStrategy;
+use App\Core\Scoring\QuizAutomaticScoringStrategy;
 use App\Core\Scoring\ScoringStrategy;
 use Illuminate\Support\Carbon;
 
@@ -29,9 +30,11 @@ abstract class AbstractCompetition
             return new TimeBasedScoringStrategy($competition->time_scoring_threshold ?? 0);
         } else if ($competition->scoringType && $competition->scoringType->name === 'Judge Score') {
             return new JudgeBasedScoringStrategy();
+        } else if ($competition->scoringType && $competition->scoringType->name === 'Quiz Automatic') {
+            return new QuizAutomaticScoringStrategy();
         }
 
-        return throw new \InvalidArgumentException('Invalid scoring type');
+        return new JudgeBasedScoringStrategy(); // fallback
     }
 
     public function isRegistrationOpen(): bool
@@ -82,6 +85,10 @@ abstract class AbstractCompetition
     {
         if ($this->scoring instanceof TimeBasedScoringStrategy) {
             return $submission;
+        }
+
+        if ($this->scoring instanceof QuizAutomaticScoringStrategy) {
+            return $submission->quizAnswers;
         }
 
         return $submission->scores;
