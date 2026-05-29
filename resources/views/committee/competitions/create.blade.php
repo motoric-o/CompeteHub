@@ -66,6 +66,14 @@
             </div>
 
             <div class="form-group">
+                <label for="competition_system" class="form-label">Sistem Kompetisi</label>
+                <select name="competition_system" id="competition_system" class="form-control" required>
+                    <option value="submission" {{ old('competition_system') == 'submission' ? 'selected' : '' }}>Pengumpulan File (Submission)</option>
+                    <option value="quiz" {{ old('competition_system') == 'quiz' ? 'selected' : '' }}>Quiz / Tanya Jawab Online (Interactive Q&A)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
                 <label for="registration_fee" class="form-label">Biaya Pendaftaran (Rp)</label>
                 <input type="number" name="registration_fee" id="registration_fee" class="form-control" value="{{ old('registration_fee', 0) }}" min="0">
             </div>

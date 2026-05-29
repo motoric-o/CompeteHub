@@ -60,4 +60,18 @@ class Submission extends Model
     {
         return $this->hasMany(Score::class);
     }
+
+    public function quizAnswers(): HasMany
+    {
+        return $this->hasMany(QuizAnswer::class);
+    }
+
+    public function getTimeTakenAttribute(): float
+    {
+        $start = $this->round?->start_date ?? $this->competition?->start_date;
+        if (!$start) {
+            return 0.0;
+        }
+        return (float) max(0.0, $this->submitted_at->diffInRealSeconds($start) / 60.0);
+    }
 }

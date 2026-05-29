@@ -40,20 +40,29 @@
                             <dt class="text-gray-500 mb-1">Waktu Submit</dt>
                             <dd class="font-medium text-gray-900">{{ $submission->submitted_at?->format('d M Y H:i:s') }}</dd>
                         </div>
-                        <div>
-                            <dt class="text-gray-500 mb-1">File</dt>
-                            <dd class="flex items-center flex-wrap gap-2">
-                                <span class="px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs font-mono border border-gray-200">.{{ $submission->file_type }}</span>
-                                <span class="text-xs text-gray-500">({{ number_format(($submission->file_size ?? 0) / 1024, 1) }} KB)</span>
-                                @if($submission->file_path)
-                                    <a href="{{ Storage::url($submission->file_path) }}" target="_blank" download
-                                       class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800 ml-1">
-                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                        Download
-                                    </a>
-                                @endif
-                            </dd>
-                        </div>
+                        @if(!$competition->isQuiz())
+                            <div>
+                                <dt class="text-gray-500 mb-1">File</dt>
+                                <dd class="flex items-center flex-wrap gap-2">
+                                    <span class="px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs font-mono border border-gray-200">.{{ $submission->file_type }}</span>
+                                    <span class="text-xs text-gray-500">({{ number_format(($submission->file_size ?? 0) / 1024, 1) }} KB)</span>
+                                    @if($submission->file_path)
+                                        <a href="{{ Storage::url($submission->file_path) }}" target="_blank" download
+                                           class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800 ml-1">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                            Download
+                                        </a>
+                                    @endif
+                                </dd>
+                            </div>
+                        @else
+                            <div>
+                                <dt class="text-gray-500 mb-1">Tipe Kompetisi</dt>
+                                <dd class="font-medium text-gray-900 flex items-center">
+                                    <span class="px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-mono border border-indigo-200">Quiz / Tanya Jawab</span>
+                                </dd>
+                            </div>
+                        @endif
                         <div>
                             <dt class="text-gray-500 mb-1">Status Revisi</dt>
                             <dd>
@@ -67,7 +76,9 @@
                     </dl>
 
                     @php
-                        $maxCriteriaScore = $criterias->sum(fn($c) => $c->max_score * $c->weight) ?: 100;
+                        $maxCriteriaScore = $competition->isQuiz()
+                            ? ($submission->round->quizQuestions->sum('points') ?: 100)
+                            : ($criterias->sum(fn($c) => $c->max_score * $c->weight) ?: 100);
                     @endphp
                     {{-- Score Summary --}}
                     <div class="mt-8 grid grid-cols-3 gap-4 border-t pt-6">
@@ -77,7 +88,7 @@
                             <span class="text-xs text-gray-400 block mt-1">/5 maks</span>
                         </div>
                         <div class="border border-gray-200 rounded-lg p-4 text-center">
-                            <span class="text-xs text-gray-500 font-medium uppercase tracking-wider block mb-1">Avg Score</span>
+                            <span class="text-xs text-gray-500 font-medium uppercase tracking-wider block mb-1">{{ $competition->isQuiz() ? 'Quiz Score' : 'Avg Score' }}</span>
                             <span class="text-2xl font-bold text-gray-900">{{ $submission->final_score !== null ? floatval($submission->final_score) : '—' }}</span>
                             <span class="text-xs text-gray-400 block mt-1">/{{ floatval($maxCriteriaScore) }} maks</span>
                         </div>
@@ -90,6 +101,33 @@
                 </div>
             </div>
 
+            @if($competition->isQuiz() && isset($quizAnswers) && $quizAnswers->isNotEmpty())
+                {{-- Quiz Answers Card --}}
+                <div class="bg-white shadow-sm sm:rounded-lg border border-gray-200 mb-6">
+                    <div class="p-6">
+                        <h3 class="font-bold text-lg text-gray-900 mb-4 border-b pb-2">Jawaban Quiz Peserta</h3>
+                        <div class="space-y-4">
+                            @foreach($quizAnswers as $index => $answer)
+                                <div class="p-4 border border-gray-100 rounded-md bg-gray-50">
+                                    <p class="font-bold text-gray-800">
+                                        Soal #{{ $index + 1 }}: {{ $answer->question->question_text }}
+                                        <span class="text-xs text-gray-500 font-normal">({{ $answer->question->points }} Poin, {{ $answer->question->question_type === 'multiple_choice' ? 'Pilihan Ganda' : 'Esai' }})</span>
+                                    </p>
+                                    <div class="mt-2 pl-2 border-l-4 border-indigo-400">
+                                        <p class="text-sm font-medium text-gray-700">Jawaban: <span class="font-bold text-gray-950">{{ $answer->answer_text }}</span></p>
+                                    </div>
+                                    @if($answer->question->question_type === 'multiple_choice')
+                                        <p class="text-xs mt-2 {{ $answer->is_correct ? 'text-green-600 font-bold' : 'text-red-600 font-bold' }}">
+                                            {{ $answer->is_correct ? '✓ Benar (Poin otomatis diberikan)' : '✗ Salah' }}
+                                        </p>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             {{-- Scoring Form --}}
             <div class="bg-white shadow-sm sm:rounded-lg border border-gray-200 mb-6">
                 <div class="p-6">
@@ -97,7 +135,89 @@
                         {{ $myScore ? 'Edit Nilai' : 'Berikan Nilai' }}
                     </h3>
 
-                    @if($criterias->isEmpty())
+                    @if($competition->isQuiz())
+                        <form action="{{ route('judge.submissions.score', [$competition, $submission]) }}" method="POST">
+                            @csrf
+                            @if(request('from_queue'))
+                                <input type="hidden" name="from_queue" value="1">
+                            @endif
+
+                            <div class="space-y-6 mb-6">
+                                @php
+                                    $mcqScore = $quizAnswers->where('question.question_type', 'multiple_choice')->sum('score');
+                                    $essayAnswers = $quizAnswers->where('question.question_type', 'essay');
+                                @endphp
+                                
+                                <div class="p-4 border border-green-200 rounded-lg bg-green-50">
+                                    <h4 class="font-bold text-green-950 text-sm">Nilai Otomatis Pilihan Ganda</h4>
+                                    <p class="text-xs text-green-700 mt-1">Poin MCQ otomatis dihitung: <strong>{{ floatval($mcqScore) }} Poin</strong></p>
+                                </div>
+
+                                @forelse($essayAnswers as $answer)
+                                    @php
+                                        $existingVal = old("criteria.{$answer->id}", $answer->score);
+                                    @endphp
+                                    <div class="p-4 border border-gray-200 rounded-lg bg-gray-50 hover:border-blue-300 transition-colors duration-200">
+                                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-2">
+                                            <div>
+                                                <h4 class="font-bold text-gray-900 text-sm sm:text-base">Nilai Jawaban Esai</h4>
+                                                <p class="text-xs text-gray-600 mt-1">Soal: {{ $answer->question->question_text }}</p>
+                                                <div class="p-2 bg-white rounded border border-gray-200 mt-2 text-xs">
+                                                    Jawaban Peserta: <strong class="text-gray-800">{{ $answer->answer_text }}</strong>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center gap-1.5 self-stretch sm:self-auto justify-end">
+                                                <span class="inline-block px-2 py-0.5 text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-300 rounded">
+                                                    Maks: {{ $answer->question->points }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3">
+                                            <input type="number" 
+                                                   name="criteria[{{ $answer->id }}]" 
+                                                   id="essay_{{ $answer->id }}"
+                                                   data-weight="1"
+                                                   min="0" 
+                                                   max="{{ $answer->question->points }}" 
+                                                   step="0.01"
+                                                   value="{{ $existingVal }}"
+                                                   class="criterion-input block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-lg font-bold"
+                                                   placeholder="0 – {{ $answer->question->points }}" 
+                                                   required>
+                                            <x-input-error :messages="$errors->get('criteria.' . $answer->id)" class="mt-2" />
+                                        </div>
+                                    </div>
+                                @empty
+                                    <p class="text-gray-500 italic">Tidak ada soal esai untuk dinilai.</p>
+                                @endforelse
+                            </div>
+
+                            {{-- Live Total Score Display --}}
+                            <div class="mb-6 p-4 border border-blue-200 bg-blue-50 rounded-lg flex justify-between items-center shadow-sm">
+                                <div>
+                                    <span class="text-sm font-bold text-blue-800 uppercase tracking-wider">Total Calculated Score</span>
+                                    <p class="text-xs text-blue-600 mt-0.5">MCQ Score + Essay Scores</p>
+                                </div>
+                                <div class="text-right">
+                                    <span id="calculated-total-score" class="text-3xl font-extrabold text-blue-900">0.00</span>
+                                </div>
+                            </div>
+
+                            <div class="mb-5">
+                                <x-input-label for="notes" :value="__('Catatan (opsional)')" class="text-gray-700 font-semibold" />
+                                <textarea name="notes" id="notes" rows="3"
+                                          class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                          placeholder="Catatan atau feedback untuk peserta...">{{ old('notes', $myScore?->notes) }}</textarea>
+                                <x-input-error :messages="$errors->get('notes')" class="mt-2" />
+                            </div>
+
+                            <div class="flex items-center justify-end border-t pt-4">
+                                <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                    {{ $myScore ? 'Update Nilai' : 'Simpan Nilai' }}
+                                </button>
+                            </div>
+                        </form>
+                    @elseif($criterias->isEmpty())
                         <div class="p-4 mb-4 text-sm text-yellow-700 bg-yellow-100 rounded-lg border border-yellow-200" role="alert">
                             <span class="font-bold">Peringatan!</span> Panitia belum menentukan kriteria penilaian untuk kompetisi ini. Silakan hubungi panitia terlebih dahulu sebelum memberikan nilai.
                         </div>
@@ -181,6 +301,7 @@
                 document.addEventListener('DOMContentLoaded', function () {
                     const inputs = document.querySelectorAll('.criterion-input');
                     const totalDisplay = document.getElementById('calculated-total-score');
+                    const mcqScore = {{ ($competition->isQuiz() && isset($mcqScore)) ? $mcqScore : 0 }};
 
                     function calculateTotal() {
                         let total = 0;
@@ -189,7 +310,7 @@
                             const weight = parseFloat(input.getAttribute('data-weight')) || 1;
                             total += value * weight;
                         });
-                        totalDisplay.textContent = total.toFixed(2);
+                        totalDisplay.textContent = (total + mcqScore).toFixed(2);
                     }
 
                     inputs.forEach(input => {

@@ -51,6 +51,9 @@
                             {{ $round->end_date ? $round->end_date->format('d M Y') : '-' }}
                         </td>
                         <td class="text-right flex gap-2 justify-end">
+                            @if($competition->isQuiz())
+                                <a href="{{ route('committee.rounds.questions.index', [$competition, $round]) }}" class="btn btn-sm" style="background-color: var(--secondary); color: var(--secondary-foreground); border: 1px solid var(--border);">Atur Soal</a>
+                            @endif
                             <a href="{{ route('committee.rounds.show', [$competition, $round]) }}" class="btn btn-sm btn-primary">Atur Bagan</a>
                             <a href="{{ route('committee.rounds.edit', [$competition, $round]) }}" class="btn btn-sm btn-outline">Edit</a>
                             <form action="{{ route('committee.rounds.destroy', [$competition, $round]) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus babak ini?');">

@@ -38,16 +38,37 @@ class ScoreProxy implements ScoringServiceInterface
             throw new \Exception('Maaf, periode penilaian untuk babak ini sudah ditutup.');
         }
 
-        // Validate each criterion score
-        $criteria = ScoringCriterion::where('competition_id', $submission->competition_id)->get()->keyBy('id');
+        if ($submission->competition->isQuiz()) {
+            $essayAnswers = $submission->quizAnswers()
+                ->whereHas('question', function ($q) {
+                    $q->where('question_type', 'essay');
+                })
+                ->with('question')
+                ->get()
+                ->keyBy('id');
 
-        foreach ($criteria as $criterionId => $criterion) {
-            if (!isset($criteriaScores[$criterionId])) {
-                throw new \InvalidArgumentException("Nilai untuk kriteria '{$criterion->name}' wajib diisi.");
+            foreach ($essayAnswers as $answerId => $answer) {
+                if (!isset($criteriaScores[$answerId])) {
+                    throw new \InvalidArgumentException("Nilai untuk jawaban esai wajib diisi.");
+                }
+                $val = $criteriaScores[$answerId];
+                $maxPoints = $answer->question->points;
+                if (!is_numeric($val) || $val < 0 || $val > $maxPoints) {
+                    throw new \InvalidArgumentException("Nilai untuk jawaban esai harus berupa angka antara 0 dan {$maxPoints}.");
+                }
             }
-            $val = $criteriaScores[$criterionId];
-            if (!is_numeric($val) || $val < 0 || $val > $criterion->max_score) {
-                throw new \InvalidArgumentException("Nilai untuk kriteria '{$criterion->name}' harus berupa angka antara 0 dan {$criterion->max_score}.");
+        } else {
+            // Validate each criterion score
+            $criteria = ScoringCriterion::where('competition_id', $submission->competition_id)->get()->keyBy('id');
+
+            foreach ($criteria as $criterionId => $criterion) {
+                if (!isset($criteriaScores[$criterionId])) {
+                    throw new \InvalidArgumentException("Nilai untuk kriteria '{$criterion->name}' wajib diisi.");
+                }
+                $val = $criteriaScores[$criterionId];
+                if (!is_numeric($val) || $val < 0 || $val > $criterion->max_score) {
+                    throw new \InvalidArgumentException("Nilai untuk kriteria '{$criterion->name}' harus berupa angka antara 0 dan {$criterion->max_score}.");
+                }
             }
         }
 
