@@ -13,6 +13,7 @@ use App\Patterns\Observer\ScoringSubject;
 use App\Patterns\Observer\LeaderboardObserver;
 use App\Patterns\Observer\EmailNotifierObserver;
 use App\Services\ContributionStatService;
+use App\States\SubmissionDeadline\SubmissionDeadlineStateResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -20,11 +21,16 @@ class SubmissionController extends Controller
 {
     private SubmissionScoringService $scoringService;
     private ContributionStatService $contributionStatService;
+    private SubmissionDeadlineStateResolver $deadlineResolver;
 
-    public function __construct(SubmissionScoringService $scoringService, ContributionStatService $contributionStatService)
-    {
+    public function __construct(
+        SubmissionScoringService $scoringService,
+        ContributionStatService $contributionStatService,
+        SubmissionDeadlineStateResolver $deadlineResolver
+    ) {
         $this->scoringService = $scoringService;
         $this->contributionStatService = $contributionStatService;
+        $this->deadlineResolver = $deadlineResolver;
     }
 
     
@@ -97,10 +103,16 @@ class SubmissionController extends Controller
         
         $submissions = $submissions->get()->keyBy('round_id');
 
-        // Pass max revisions to view
+        $deadlineRisks = [];
+        foreach ($rounds as $round) {
+            $deadlineRisks[$round->id] = $this->deadlineResolver
+                ->resolve($round, $submissions->get($round->id))
+                ->toArray();
+        }
+
         $maxRevisions = SubmissionScoringService::MAX_REVISIONS;
 
-        return view('participant.submissions.index', compact('competition', 'rounds', 'submissions', 'maxRevisions'));
+        return view('participant.submissions.index', compact('competition', 'rounds', 'submissions', 'maxRevisions', 'deadlineRisks'));
     }
 
     public function create(Competition $competition, Round $round)
