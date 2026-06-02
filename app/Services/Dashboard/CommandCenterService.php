@@ -5,6 +5,7 @@ namespace App\Services\Dashboard;
 use App\Models\Competition;
 use App\Models\Registration;
 use App\Models\Payment;
+use App\Services\Scoring\Anomaly\ScoreAnomalyDetector;
 use Illuminate\Support\Collection;
 
 /**
@@ -23,6 +24,10 @@ use Illuminate\Support\Collection;
  */
 class CommandCenterService
 {
+    public function __construct(
+        private ScoreAnomalyDetector $scoreAnomalyDetector,
+    ) {}
+
     /**
      * Build complete operational snapshot for a competition.
      * Semua query di-eager load untuk menghindari N+1.
@@ -46,6 +51,7 @@ class CommandCenterService
         $readinessScore    = $this->calculateReadinessScore($competition, $allRegistrations);
         $readinessBreakdown = $this->buildReadinessBreakdown($competition, $allRegistrations);
         $warnings          = $this->detectWarnings($competition, $allRegistrations);
+        $scoringAnomalies  = $this->scoreAnomalyDetector->detectForCompetition($competition);
 
         $totalActive      = $active->count();
         $quota            = $competition->quota;
@@ -65,6 +71,8 @@ class CommandCenterService
             readinessScore:                 $readinessScore,
             readinessBreakdown:             $readinessBreakdown,
             warnings:                       $warnings,
+            scoringAnomalyCount:            count($scoringAnomalies),
+            scoringAnomalies:               $scoringAnomalies,
             totalActiveRegistrations:       $totalActive,
             quota:                          $quota,
             quotaFillPercent:               $quotaFillPercent,
