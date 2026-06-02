@@ -25,6 +25,8 @@ class DatabaseSeeder extends Seeder
             SubmissionSeeder::class,
             ScoreSeeder::class,
             CriterionScoreSeeder::class,
+            ScoringAnomalyDemoSeeder::class,
+            SubmissionDeadlineDemoSeeder::class,
             LeaderboardSeeder::class,
             ContributionStatSeeder::class,
             NotificationSeeder::class,

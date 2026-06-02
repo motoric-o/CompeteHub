@@ -43,6 +43,10 @@ readonly class CommandCenterDTO
         /** Warnings operasional */
         public array  $warnings,
 
+        /** Hasil deteksi nilai juri yang tidak wajar */
+        public int    $scoringAnomalyCount,
+        public array  $scoringAnomalies,
+
         /** Total registrasi aktif (excludes rejected) */
         public int    $totalActiveRegistrations,
 

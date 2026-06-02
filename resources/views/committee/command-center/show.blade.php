@@ -126,6 +126,63 @@
             </div>
         </div>
 
+
+        {{-- ── SCORING ANOMALY DETECTOR ─────────────────────────────────── --}}
+        <div class="card">
+            <div class="flex items-start justify-between gap-4 mb-4">
+                <div>
+                    <h3 class="text-lg font-bold">Scoring Anomaly Detector</h3>
+                    <p class="text-sm text-muted-foreground mt-1">
+                        Membantu committee menemukan nilai juri yang terlalu jauh dari rata-rata juri lain.
+                    </p>
+                </div>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border {{ $dashboard->scoringAnomalyCount > 0 ? 'bg-red-50 border-red-200 text-red-700' : 'bg-green-50 border-green-200 text-green-700' }}">
+                    {{ $dashboard->scoringAnomalyCount }} anomaly
+                </span>
+            </div>
+
+            @if($dashboard->scoringAnomalyCount > 0)
+                <div class="overflow-x-auto">
+                    <table style="width:100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border);">
+                                <th class="text-left py-2 px-3 text-sm font-semibold text-muted-foreground">Submission</th>
+                                <th class="text-left py-2 px-3 text-sm font-semibold text-muted-foreground">Juri</th>
+                                <th class="text-left py-2 px-3 text-sm font-semibold text-muted-foreground">Nilai</th>
+                                <th class="text-left py-2 px-3 text-sm font-semibold text-muted-foreground">Rata-rata Juri Lain</th>
+                                <th class="text-left py-2 px-3 text-sm font-semibold text-muted-foreground">Gap</th>
+                                <th class="text-left py-2 px-3 text-sm font-semibold text-muted-foreground">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($dashboard->scoringAnomalies as $anomaly)
+                                <tr style="border-bottom: 1px solid var(--border);">
+                                    <td class="py-3 px-3">
+                                        <div class="font-semibold text-sm">{{ $anomaly['participant_name'] }}</div>
+                                        <div class="text-xs text-muted-foreground">{{ $anomaly['round_name'] }}</div>
+                                    </td>
+                                    <td class="py-3 px-3 text-sm">{{ $anomaly['judge_name'] }}</td>
+                                    <td class="py-3 px-3 text-sm font-bold">{{ $anomaly['judge_score'] }}</td>
+                                    <td class="py-3 px-3 text-sm">{{ $anomaly['peer_average'] }}</td>
+                                    <td class="py-3 px-3 text-sm font-bold">{{ $anomaly['gap'] }}</td>
+                                    <td class="py-3 px-3">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold uppercase tracking-wide border {{ $anomaly['severity'] === 'critical' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-yellow-50 border-yellow-200 text-yellow-700' }}">
+                                            {{ $anomaly['severity'] }}
+                                        </span>
+                                        <div class="text-xs text-muted-foreground mt-1">{{ $anomaly['message'] }}</div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <div class="p-4 rounded-lg border bg-green-50 border-green-200 text-green-800 text-sm">
+                    Tidak ada nilai juri yang terdeteksi terlalu jauh dari rata-rata saat ini.
+                </div>
+            @endif
+        </div>
+
         {{-- ── NEW REGISTRATIONS ─────────────────────────────────────────── --}}
         @if($dashboard->newRegistrationsCount > 0)
         <div class="card">
@@ -231,7 +288,7 @@
         @endif
 
         {{-- ── ALL CLEAR ─────────────────────────────────────────────────── --}}
-        @if($dashboard->newRegistrationsCount === 0 && $dashboard->pendingPaymentsCount === 0 && $dashboard->overdueCount === 0)
+        @if($dashboard->newRegistrationsCount === 0 && $dashboard->pendingPaymentsCount === 0 && $dashboard->overdueCount === 0 && $dashboard->scoringAnomalyCount === 0)
         <div class="card text-center py-8">
             <div class="text-4xl mb-3">✅</div>
             <h3 class="text-lg font-bold mb-1">Semua Beres!</h3>
