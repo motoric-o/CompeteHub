@@ -14,7 +14,7 @@ class EmailNotifierObserver implements ObserverInterface
         switch ($event) {
             case 'score_published':
                 if (isset($data['user_id']) && isset($data['score'])) {
-                    $facade->sendResultEmail($data['user_id'], $data['score']);
+                    $facade->sendResultEmail($data['user_id'], $data['score'], $data['submission_id'] ?? null);
                 }
                 break;
                 

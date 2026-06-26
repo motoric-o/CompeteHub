@@ -12,12 +12,15 @@ class CompetitionController extends Controller
     /**
      * Display a listing of open competitions for participants.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        // Show only open or ongoing competitions
-        $competitions = Competition::whereIn('status', ['open', 'ongoing'])
-            ->latest()
-            ->get();
+        $query = Competition::whereIn('status', ['open', 'ongoing']);
+
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
+        }
+
+        $competitions = $query->latest()->get();
 
         return view('participant.competitions.index', compact('competitions'));
     }

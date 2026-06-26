@@ -4,106 +4,302 @@ namespace App\Http\Controllers\Participant;
 
 use App\Http\Controllers\Controller;
 use App\Models\Competition;
-use App\Models\FormTemplate;
 use App\Models\Registration;
-use App\Models\RegistrationDocument;
+use App\Services\Registration\RegistrationService;
+use App\States\RegistrationStateResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class RegistrationController extends Controller
 {
-    /**
-     * Show registration form (dynamic, based on form template).
-     */
-    public function create(Competition $competition): View
-    {
-        // Cek sudah pernah daftar belum
-        $existing = Registration::where('competition_id', $competition->id)
-            ->where('user_id', auth()->id())
-            ->first();
+    public function __construct(
+        private RegistrationService $registrationService,
+        private RegistrationStateResolver $stateResolver,
+    ) {}
 
-        if ($existing) {
-            return view('participant.registrations.status', compact('competition', 'existing'));
+    public function index(): View
+    {
+        $registrations = Registration::where('user_id', auth()->id())
+            ->with(['competition', 'payment', 'documents'])
+            ->latest()
+            ->get();
+
+        return view('participant.registrations.index', compact('registrations'));
+    }
+
+    public function create(Competition $competition): View|RedirectResponse
+    {
+        $eligibility = $this->registrationService->checkEligibility($competition, auth()->id());
+
+        if (! $eligibility['eligible'] && $eligibility['reason'] === 'already_registered') {
+            return redirect()->route(
+                'participant.registrations.show',
+                [$competition, $eligibility['registration']]
+            );
         }
 
-        // Ambil form template pertama dari kompetisi
         $formTemplate = $competition->formTemplates()->first();
 
         return view('participant.registrations.create', compact('competition', 'formTemplate'));
     }
 
-    /**
-     * Submit registration.
-     */
     public function store(Request $request, Competition $competition): RedirectResponse
     {
-        // Cek quota
-        if ($competition->quota) {
-            $count = Registration::where('competition_id', $competition->id)
-                ->whereNotIn('status', ['rejected'])
-                ->count();
-            if ($count >= $competition->quota) {
-                return back()->with('error', 'Registration quota is full.');
+        // Eligibility check
+        $eligibility = $this->registrationService->checkEligibility($competition, auth()->id());
+
+        if (! $eligibility['eligible']) {
+            $messages = [
+                'already_registered'        => 'You have already registered for this competition.',
+                'registration_closed'       => 'Registration period has ended.',
+                'registration_not_open_yet' => 'Registration has not opened yet.',
+                'quota_full'                => 'Registration quota is full.',
+            ];
+
+            $msg = $messages[$eligibility['reason']] ?? 'Unable to register at this time.';
+
+            if ($eligibility['reason'] === 'already_registered') {
+                return redirect()
+                    ->route('participant.registrations.show', [$competition, $eligibility['registration']])
+                    ->with('error', $msg);
             }
+
+            return back()->with('error', $msg);
         }
 
-        // Cek registration period
-        if ($competition->registration_end && now()->isAfter($competition->registration_end)) {
-            return back()->with('error', 'Registration period has ended.');
-        }
+        // Validate request using centralized rule builder
+        $rules = $this->registrationService->buildValidationRules($competition);
+        $request->validate($rules);
 
-        // Validasi dokumen yang diupload (dari dynamic form)
-        $request->validate([
-            'documents.*' => ['nullable', 'file', 'max:5120'], // max 5MB per file
-        ]);
-
-        // Create registration
-        $registration = Registration::create([
-            'competition_id' => $competition->id,
-            'user_id'        => auth()->id(),
-            'status'         => 'pending',
-        ]);
-
-        // Upload documents
-        if ($request->hasFile('documents')) {
-            foreach ($request->file('documents') as $type => $file) {
-                $path = $file->store('registration-documents/' . $registration->id, 'public');
-                RegistrationDocument::create([
-                    'registration_id' => $registration->id,
-                    'document_type'   => $type,
-                    'file_path'       => $path,
-                ]);
-            }
-        }
+        // Create registration via service (handles documents + payment atomically)
+        $registration = $this->registrationService->createRegistration(
+            competition:  $competition,
+            userId:       auth()->id(),
+            formData:     $request->input('form_data', []),
+            documents:    $request->hasFile('documents') ? $request->file('documents') : [],
+            paymentProof: $request->file('payment_proof'),
+        );
 
         return redirect()
             ->route('participant.registrations.show', [$competition, $registration])
             ->with('success', 'Registration submitted! Waiting for verification.');
     }
 
-    /**
-     * Show registration status.
-     */
     public function show(Competition $competition, Registration $registration): View
     {
         abort_unless($registration->user_id === auth()->id(), 403);
+        abort_unless($registration->competition_id === $competition->id, 404);
 
         $registration->load(['documents', 'payment']);
 
-        return view('participant.registrations.show', compact('competition', 'registration'));
+        // Resolve next action card
+        $nextAction = $this->stateResolver->resolve($registration);
+
+        // Customize dynamic action URLs if actionable
+        if ($nextAction->isActionable) {
+            if ($nextAction->state === 'account_ok') {
+                $nextAction = new \App\States\NextActionCard(
+                    state: $nextAction->state,
+                    title: $nextAction->title,
+                    description: $nextAction->description,
+                    actionLabel: $nextAction->actionLabel,
+                    actionUrl: '#documents-section',
+                    severity: $nextAction->severity,
+                    icon: $nextAction->icon,
+                    isActionable: $nextAction->isActionable,
+                    deadlineNote: $nextAction->deadlineNote,
+                    progressSteps: $nextAction->progressSteps
+                );
+            } elseif ($nextAction->state === 'documents_ok') {
+                $nextAction = new \App\States\NextActionCard(
+                    state: $nextAction->state,
+                    title: $nextAction->title,
+                    description: $nextAction->description,
+                    actionLabel: $nextAction->actionLabel,
+                    actionUrl: '#payment-section',
+                    severity: $nextAction->severity,
+                    icon: $nextAction->icon,
+                    isActionable: $nextAction->isActionable,
+                    deadlineNote: $nextAction->deadlineNote,
+                    progressSteps: $nextAction->progressSteps
+                );
+            } elseif ($nextAction->state === 'verified') {
+                $nextAction = new \App\States\NextActionCard(
+                    state: $nextAction->state,
+                    title: $nextAction->title,
+                    description: $nextAction->description,
+                    actionLabel: $nextAction->actionLabel,
+                    actionUrl: route('participant.registrations.certificate', [$competition, $registration]),
+                    severity: $nextAction->severity,
+                    icon: $nextAction->icon,
+                    isActionable: $nextAction->isActionable,
+                    deadlineNote: $nextAction->deadlineNote,
+                    progressSteps: $nextAction->progressSteps
+                );
+            }
+        }
+
+        return view('participant.registrations.show', compact('competition', 'registration', 'nextAction'));
     }
 
     /**
-     * My registrations list.
+     * AJAX pre-check — validate form completeness before final submission.
+     * Returns JSON with list of issues. Empty issues = ready to submit.
      */
-    public function index(): View
+    public function preCheck(Request $request, Competition $competition): \Illuminate\Http\JsonResponse
     {
-        $registrations = Registration::where('user_id', auth()->id())
-            ->with('competition')
-            ->latest()
-            ->get();
+        // Quick eligibility gate
+        $eligibility = $this->registrationService->checkEligibility($competition, auth()->id());
+        if (! $eligibility['eligible'] && $eligibility['reason'] !== null) {
+            return response()->json([
+                'eligible' => false,
+                'reason'   => $eligibility['reason'],
+                'issues'   => [],
+            ], 422);
+        }
 
-        return view('participant.registrations.index', compact('registrations'));
+        /** @var \App\Services\Registration\RegistrationPreCheckService $preCheck */
+        $preCheck = app(\App\Services\Registration\RegistrationPreCheckService::class);
+
+        $issues = $preCheck->check(
+            competition:  $competition,
+            formData:     $request->input('form_data', []),
+            uploadedFiles: $request->hasFile('documents') ? $request->file('documents') : [],
+            paymentProof: $request->file('payment_proof'),
+        );
+
+        return response()->json([
+            'eligible' => true,
+            'issues'   => array_map(fn ($i) => $i->toArray(), $issues),
+            'ready'    => count($issues) === 0,
+        ]);
+    }
+
+    /**
+     * Download Certificate.
+     */
+    public function downloadCertificate(
+        Competition $competition,
+        Registration $registration,
+        \App\Services\Facade\NotificationFacade $facade
+    ) {
+        abort_unless($registration->user_id === auth()->id(), 403);
+        abort_unless($registration->competition_id === $competition->id, 404);
+        abort_unless(in_array($registration->status, ['verified', 'payment_ok']), 403, 'Registration not verified.');
+
+        $data = [
+            'userName'        => auth()->user()->name,
+            'competitionName' => $competition->name,
+        ];
+
+        $path = $facade->generatePDFCertificate(auth()->id(), $competition->id, $data);
+
+        if (! Storage::disk('public')->exists($path)) {
+            abort(404, 'Certificate file not found. Please try again.');
+        }
+
+        $absolutePath = Storage::disk('public')->path($path);
+
+        return response()->download(
+            $absolutePath,
+            "Certificate_{$competition->name}_{$registration->id}.pdf"
+        );
+    }
+
+    /**
+     * Re-upload a rejected document.
+     */
+    public function reuploadDocument(Request $request, Competition $competition, Registration $registration): RedirectResponse
+    {
+        abort_unless($registration->user_id === auth()->id(), 403);
+        abort_unless($registration->competition_id === $competition->id, 404);
+
+        $request->validate([
+            'document_type' => ['required', 'string'],
+            'file'          => ['required', 'file', 'max:5120', 'mimes:pdf,jpg,jpeg,png'],
+        ]);
+
+        $docType = $request->input('document_type');
+        $document = $registration->documents()->where('document_type', $docType)->first();
+
+        abort_unless($document, 404, 'Dokumen jenis ini tidak ditemukan.');
+
+        // Simpan file baru
+        $path = $request->file('file')->store('registration-documents/' . $registration->id, 'public');
+
+        // Update record dokumen
+        $document->update([
+            'file_path' => $path,
+            'status'    => 'pending',
+        ]);
+
+        // Reset status registrasi ke pending jika sebelumnya ditolak
+        if ($registration->status === 'rejected') {
+            $registration->update([
+                'status' => 'pending',
+                'rejection_reason' => null,
+            ]);
+        }
+
+        return back()->with('success', "Dokumen {$docType} berhasil diupload ulang.");
+    }
+
+    /**
+     * Re-upload or upload payment proof.
+     */
+    public function reuploadPayment(Request $request, Competition $competition, Registration $registration): RedirectResponse
+    {
+        abort_unless($registration->user_id === auth()->id(), 403);
+        abort_unless($registration->competition_id === $competition->id, 404);
+
+        $request->validate([
+            'payment_proof' => ['required', 'file', 'max:5120', 'mimes:jpg,jpeg,png,pdf'],
+        ]);
+
+        $payment = $registration->payment;
+        abort_unless($payment, 404, 'Data pembayaran tidak ditemukan.');
+
+        // Simpan bukti pembayaran baru
+        $path = $request->file('payment_proof')->store('payment-proofs/' . $registration->id, 'public');
+
+        // Update payment record
+        $payment->update([
+            'proof_path' => $path,
+            'status'     => 'pending_verification',
+        ]);
+
+        if ($registration->status !== 'verified') {
+            $registration->update([
+                'status' => 'payment_ok',
+                'rejection_reason' => null,
+            ]);
+        }
+
+        return back()->with('success', 'Bukti pembayaran berhasil diupload. Menunggu verifikasi panitia.');
+    }
+
+    private function checkRegistrationAvailability(Competition $competition): ?RedirectResponse
+    {
+        if (! in_array($competition->status, ['open', 'ongoing'])) {
+            return redirect()
+                ->route('participant.competitions.index')
+                ->with('error', 'Registration is not open for this competition.');
+        }
+
+        if ($competition->registration_start && now()->isBefore($competition->registration_start)) {
+            return redirect()
+                ->route('participant.competitions.index')
+                ->with('error', 'Registration period has not started yet.');
+        }
+
+        if ($competition->registration_end && now()->isAfter($competition->registration_end)) {
+            return redirect()
+                ->route('participant.competitions.index')
+                ->with('error', 'Registration period has ended.');
+        }
+
+        return null;
     }
 }

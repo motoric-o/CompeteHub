@@ -69,6 +69,34 @@ class ScoringCriterionSeeder extends Seeder
             ]);
         }
 
+        $dsId = DB::table('competitions')->where('name', 'Data Science Challenge 2026')->value('id');
+        $iotId = DB::table('competitions')->where('name', 'IoT Innovation Cup 2025')->value('id');
+        $mobileId = DB::table('competitions')->where('name', 'Mobile App Dev Arena')->value('id');
+
+        if ($dsId) {
+            $criteria = array_merge($criteria, [
+                ['competition_id' => $dsId, 'name' => 'Model Accuracy', 'description' => 'Metrics on prediction performance.', 'max_score' => 100, 'weight' => 0.50, 'created_at' => now(), 'updated_at' => now()],
+                ['competition_id' => $dsId, 'name' => 'Methodology', 'description' => 'Feature engineering and model logic.', 'max_score' => 100, 'weight' => 0.30, 'created_at' => now(), 'updated_at' => now()],
+                ['competition_id' => $dsId, 'name' => 'Report & Visuals', 'description' => 'Clarity of documentation.', 'max_score' => 100, 'weight' => 0.20, 'created_at' => now(), 'updated_at' => now()],
+            ]);
+        }
+
+        if ($iotId) {
+            $criteria = array_merge($criteria, [
+                ['competition_id' => $iotId, 'name' => 'Hardware Reliability', 'description' => 'Does it work consistently?', 'max_score' => 100, 'weight' => 0.40, 'created_at' => now(), 'updated_at' => now()],
+                ['competition_id' => $iotId, 'name' => 'Use Case & Value', 'description' => 'Real-world utility.', 'max_score' => 100, 'weight' => 0.40, 'created_at' => now(), 'updated_at' => now()],
+                ['competition_id' => $iotId, 'name' => 'Presentation', 'description' => 'Quality of pitch and demo.', 'max_score' => 100, 'weight' => 0.20, 'created_at' => now(), 'updated_at' => now()],
+            ]);
+        }
+
+        if ($mobileId) {
+            $criteria = array_merge($criteria, [
+                ['competition_id' => $mobileId, 'name' => 'User Interface & UX', 'description' => 'Aesthetics and usability.', 'max_score' => 100, 'weight' => 0.35, 'created_at' => now(), 'updated_at' => now()],
+                ['competition_id' => $mobileId, 'name' => 'Technical Execution', 'description' => 'Code structure and api integration.', 'max_score' => 100, 'weight' => 0.35, 'created_at' => now(), 'updated_at' => now()],
+                ['competition_id' => $mobileId, 'name' => 'Business Viability', 'description' => 'Market potential.', 'max_score' => 100, 'weight' => 0.30, 'created_at' => now(), 'updated_at' => now()],
+            ]);
+        }
+
         if (!empty($criteria)) {
             DB::table('scoring_criteria')->insert($criteria);
         }

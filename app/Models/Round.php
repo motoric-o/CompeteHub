@@ -31,6 +31,11 @@ class Round extends Model
         return $this->hasMany(Submission::class);
     }
 
+    public function quizQuestions()
+    {
+        return $this->hasMany(QuizQuestion::class);
+    }
+
     protected function casts(): array
     {
         return [

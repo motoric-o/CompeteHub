@@ -9,54 +9,43 @@ class PaymentSeeder extends Seeder
 {
     public function run(): void
     {
-        $registrations = DB::table('registrations')->orderBy('id')->pluck('id');
+        $registrations = DB::table('registrations')->get();
 
-        // Reg 1 = Tim Alpha (Hackathon, payment_ok) → sudah bayar
-        $regAlpha = $registrations[0];
-        // Reg 2 = Tim Beta (Hackathon, documents_ok) → belum bayar
-        $regBeta  = $registrations[1];
-        // Reg 3 = Budi (CP, payment_ok) → gratis
-        $regBudi  = $registrations[2];
-        // Reg 4 = Siti (CP, account_ok) → belum bayar
-        $regSiti  = $registrations[3];
+        $payments = [];
 
-        DB::table('payments')->insert([
-            [
-                'registration_id' => $regAlpha,
-                'amount'          => 50000,
-                'status'          => 'paid',
-                'proof_path'      => 'proofs/alpha_bukti.jpg',
-                'verified_at'     => now(),
-                'created_at'      => now(),
-                'updated_at'      => now(),
-            ],
-            [
-                'registration_id' => $regBeta,
-                'amount'          => 50000,
-                'status'          => 'unpaid',
-                'proof_path'      => null,
-                'verified_at'     => null,
-                'created_at'      => now(),
-                'updated_at'      => now(),
-            ],
-            [
-                'registration_id' => $regBudi,
-                'amount'          => 0,
-                'status'          => 'free',    // CP gratis
-                'proof_path'      => null,
-                'verified_at'     => null,
-                'created_at'      => now(),
-                'updated_at'      => now(),
-            ],
-            [
-                'registration_id' => $regSiti,
-                'amount'          => 0,
-                'status'          => 'unpaid',
-                'proof_path'      => null,
-                'verified_at'     => null,
-                'created_at'      => now(),
-                'updated_at'      => now(),
-            ],
-        ]);
+        foreach ($registrations as $reg) {
+            $comp = DB::table('competitions')->where('id', $reg->competition_id)->first();
+            if (!$comp) {
+                continue;
+            }
+
+            if ($comp->registration_fee == 0) {
+                $payments[] = [
+                    'registration_id' => $reg->id,
+                    'amount'          => 0,
+                    'status'          => 'free',
+                    'proof_path'      => null,
+                    'verified_at'     => null,
+                    'created_at'      => now(),
+                    'updated_at'      => now(),
+                ];
+            } else {
+                $isPaid = in_array($reg->status, ['verified', 'payment_ok']);
+                
+                $payments[] = [
+                    'registration_id' => $reg->id,
+                    'amount'          => $comp->registration_fee,
+                    'status'          => $isPaid ? 'paid' : 'unpaid',
+                    'proof_path'      => $isPaid ? 'proofs/alpha_bukti.jpg' : null,
+                    'verified_at'     => $isPaid ? now() : null,
+                    'created_at'      => now(),
+                    'updated_at'      => now(),
+                ];
+            }
+        }
+
+        if (!empty($payments)) {
+            DB::table('payments')->insert($payments);
+        }
     }
 }

@@ -16,7 +16,11 @@ class Competition extends Model
         'name',
         'description',
         'type',
-        'scoring_type',
+        'category',
+        'submission_mode',
+        'competition_system',
+        'scoring_type_id',
+        'time_scoring_threshold',
         'registration_fee',
         'quota',
         'banner_url',
@@ -41,18 +45,15 @@ class Competition extends Model
         ];
     }
 
-    // ── Relationships ──────────────────────────────────────
-
-    /**
-     * Panitia (committee) yang membuat kompetisi ini.
-     */
     public function committee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+
+    /** @deprecated Use committee() instead */
     public function creator(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->committee();
     }
 
     public function scoringType(): BelongsTo
@@ -80,9 +81,16 @@ class Competition extends Model
         return $this->type === 'team';
     }
 
-    /**
-     * Apakah pendaftaran masih dibuka?
-     */
+    public function isQuiz(): bool
+    {
+        return $this->competition_system === 'quiz';
+    }
+
+    public function isAllMembersSubmit(): bool
+    {
+        return $this->submission_mode === 'all_members';
+    }
+
     public function isRegistrationOpen(): bool
     {
         return $this->status === 'open'
@@ -91,15 +99,29 @@ class Competition extends Model
     }
 
     /**
-     * Apakah kuota masih tersedia?
+     * Check if quota is available.
+     * Uses registrations table as the single source of truth.
+     * Previously this used teams()->count() which was inconsistent
+     * with the quota check in RegistrationService.
      */
     public function hasAvailableQuota(): bool
     {
         if ($this->quota === null) {
-            return true; // unlimited
+            return true; // Unlimited
         }
 
-        return $this->teams()->count() < $this->quota;
+        $activeCount = $this->registrations()
+            ->whereNotIn('status', ['rejected'])
+            ->count();
+
+        return $activeCount < $this->quota;
+    }
+
+    // Status Helpers 
+
+    public function isStatusAllowingSubmission(): bool
+    {
+        return in_array($this->status, ['ongoing', 'open']);
     }
     public function registrations(): HasMany
     {
@@ -124,5 +146,10 @@ class Competition extends Model
     public function leaderboardEntries(): HasMany
     {
         return $this->hasMany(LeaderboardEntry::class);
+    }
+
+    public function contributionStats(): HasMany
+    {
+        return $this->hasMany(ContributionStat::class);
     }
 }

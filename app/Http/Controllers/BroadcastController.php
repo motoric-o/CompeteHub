@@ -10,8 +10,8 @@ class BroadcastController extends Controller
 {
     public function create()
     {
-        // Ambil semua kompetisi untuk dropdown
         $competitions = Competition::orderBy('created_at', 'desc')->get();
+
         return view('broadcast.create', compact('competitions'));
     }
 
@@ -24,15 +24,25 @@ class BroadcastController extends Controller
         ]);
 
         try {
-            $notificationFacade->broadcastToParticipants(
+            $result = $notificationFacade->broadcastToParticipants(
                 $request->competition_id,
                 $request->subject,
-                $request->body
+                $request->body,
+                auth()->id()
             );
 
-            return redirect()->back()->with('success', 'Email broadcast berhasil dikirim ke seluruh peserta lomba terpilih!');
+            $message = "Email broadcast berhasil dikirim ke {$result['sent']} dari {$result['total']} peserta.";
+
+            if ($result['failed'] > 0) {
+                $message .= " {$result['failed']} email gagal dan sudah dicatat di Log Notifikasi.";
+            }
+
+            return redirect()->back()->with('success', $message);
         } catch (\Exception $e) {
-            return redirect()->back()->withInput()->with('error', 'Gagal mengirim email: ' . $e->getMessage());
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal mengirim email: ' . $e->getMessage());
         }
     }
 }

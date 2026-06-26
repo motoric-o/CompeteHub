@@ -37,13 +37,37 @@ return new class extends Migration
             $table->foreignId('round_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->nullable()->constrained()->cascadeOnDelete();   // individu
             $table->foreignId('team_id')->nullable()->constrained()->cascadeOnDelete();   // tim
-            $table->string('file_path', 255);
+            $table->string('file_path', 255)->nullable();
             $table->string('file_type', 50)->nullable();
             $table->unsignedBigInteger('file_size')->nullable();
             $table->timestamp('submitted_at')->useCurrent();   // JANGAN pernah diupdate!
             $table->decimal('final_score', 8, 2)->nullable();
             $table->enum('status', ['submitted', 'under_review', 'scored'])->default('submitted');
             $table->timestamps();
+        });
+
+        // Quiz Questions
+        Schema::create('quiz_questions', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('round_id')->constrained()->cascadeOnDelete();
+            $table->text('question_text');
+            $table->enum('question_type', ['multiple_choice', 'essay'])->default('multiple_choice');
+            $table->json('options')->nullable();
+            $table->string('correct_answer')->nullable();
+            $table->integer('points')->default(10);
+            $table->timestamps();
+        });
+
+        // Quiz Answers
+        Schema::create('quiz_answers', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('submission_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('question_id')->constrained('quiz_questions')->cascadeOnDelete();
+            $table->text('answer_text')->nullable();
+            $table->boolean('is_correct')->nullable();
+            $table->decimal('score', 8, 2)->default(0);
+            $table->timestamps();
+            $table->unique(['submission_id', 'question_id']);
         });
 
         // Scores — nilai individual tiap juri per submisi
@@ -63,6 +87,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('scores');
+        Schema::dropIfExists('quiz_answers');
+        Schema::dropIfExists('quiz_questions');
         Schema::dropIfExists('submissions');
         Schema::dropIfExists('brackets');
         Schema::dropIfExists('jury_assignments');
