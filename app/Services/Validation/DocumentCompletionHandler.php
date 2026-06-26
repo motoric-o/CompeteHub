@@ -47,7 +47,7 @@ class DocumentCompletionHandler extends RegistrationHandler
         // Cek apakah semua dokumen sudah verified
         $pendingDocs = $documents->where('status', 'pending');
         if ($pendingDocs->count() > 0) {
-            return ValidationResult::fail('Some documents are still pending review.');
+            return ValidationResult::halt('Some documents are still pending review.');
         }
 
         return ValidationResult::pass('All documents verified.', 'documents_ok');

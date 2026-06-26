@@ -1,7 +1,7 @@
 <x-mail::message>
 # Halo!
 
-{{ $body }}
+{!! $body !!}
 
 Terima kasih,<br>
 Panitia {{ config('app.name') }}

@@ -49,7 +49,8 @@ class JuryAssignmentSeeder extends Seeder
             ['user_id' => $hassan, 'competition_id' => $iot,       'assigned_at' => now()],
             ['user_id' => $lina,   'competition_id' => $iot,       'assigned_at' => now()],
 
-            // Mobile App: Rico, Hassan, Lina
+            // Mobile App: Jeryko, Rico, Hassan, Lina
+            ['user_id' => $jeryko, 'competition_id' => $mobile,    'assigned_at' => now()],
             ['user_id' => $rico,   'competition_id' => $mobile,    'assigned_at' => now()],
             ['user_id' => $hassan, 'competition_id' => $mobile,    'assigned_at' => now()],
             ['user_id' => $lina,   'competition_id' => $mobile,    'assigned_at' => now()],

@@ -29,6 +29,11 @@ abstract class RegistrationHandler
         $result = $this->validate($registration);
 
         if (! $result->passed) {
+            if ($result->isHalt ?? false) {
+                // Berhenti di handler ini, tidak reject, hanya pending manual action
+                return $result;
+            }
+
             // Gagal di handler ini — reject
             $registration->update([
                 'status'           => 'rejected',

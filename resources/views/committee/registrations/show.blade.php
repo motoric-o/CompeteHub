@@ -310,11 +310,29 @@
                                 Lihat File →
                             </a>
                         </div>
-                        <span class="text-xs px-2 py-1 rounded-full font-semibold"
-                              style="background: {{ $doc->status === 'verified' ? 'rgba(34,197,94,0.1)' : ($doc->status === 'rejected' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)') }};
-                                     color: {{ $doc->status === 'verified' ? 'var(--success)' : ($doc->status === 'rejected' ? 'var(--destructive)' : '#f59e0b') }};">
-                            {{ ucfirst($doc->status) }}
-                        </span>
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs px-2 py-1 rounded-full font-semibold"
+                                  style="background: {{ $doc->status === 'verified' ? 'rgba(34,197,94,0.1)' : ($doc->status === 'rejected' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)') }};
+                                         color: {{ $doc->status === 'verified' ? 'var(--success)' : ($doc->status === 'rejected' ? 'var(--destructive)' : '#f59e0b') }};">
+                                {{ ucfirst($doc->status) }}
+                            </span>
+
+                            @if($doc->status !== 'verified')
+                            <form method="POST" action="{{ route('committee.documents.verify', $doc) }}" class="inline">
+                                @csrf @method('PATCH')
+                                <input type="hidden" name="status" value="verified" />
+                                <button type="submit" class="text-xs font-semibold hover:underline" style="color: var(--success);">Approve</button>
+                            </form>
+                            @endif
+
+                            @if($doc->status !== 'rejected')
+                            <form method="POST" action="{{ route('committee.documents.verify', $doc) }}" class="inline">
+                                @csrf @method('PATCH')
+                                <input type="hidden" name="status" value="rejected" />
+                                <button type="submit" class="text-xs font-semibold hover:underline" style="color: var(--destructive);">Reject</button>
+                            </form>
+                            @endif
+                        </div>
                     </div>
                 @endforeach
             </div>

@@ -38,7 +38,7 @@ class RoundSeeder extends Seeder
             ['competition_id' => $iot,       'name' => 'Hardware Demo', 'round_order' => 2, 'status' => 'finished', 'start_date' => '2025-10-06 08:00:00', 'end_date' => '2025-10-15 20:00:00', 'created_at' => now(), 'updated_at' => now()],
             // Mobile App rounds
             ['competition_id' => $mobile,    'name' => 'App Prototype', 'round_order' => 1, 'status' => 'active', 'start_date' => '2026-07-01 08:00:00', 'end_date' => '2026-07-10 20:00:00', 'created_at' => now(), 'updated_at' => now()],
-            ['competition_id' => $mobile,    'name' => 'Main Demo', 'round_order' => 2, 'status' => 'pending', 'start_date' => '2026-07-11 08:00:00', 'end_date' => '2026-07-15 20:00:00', 'created_at' => now(), 'updated_at' => now()],
+            ['competition_id' => $mobile,    'name' => 'Main Demo', 'round_order' => 2, 'status' => 'pending', 'start_date' => '2026-07-11 08:00:00', 'end_date' => '2026-07-20 20:00:00', 'created_at' => now(), 'updated_at' => now()],
             // Cyber Security CTF Junior rounds
             ['competition_id' => $ctfJr,     'name' => 'Online CTF Quals', 'round_order' => 1, 'status' => 'active', 'start_date' => '2026-05-01 08:00:00', 'end_date' => '2026-05-20 20:00:00', 'created_at' => now(), 'updated_at' => now()],
             ['competition_id' => $ctfJr,     'name' => 'Final CTF Attack-Defense', 'round_order' => 2, 'status' => 'pending', 'start_date' => '2026-05-21 08:00:00', 'end_date' => '2026-06-01 20:00:00', 'created_at' => now(), 'updated_at' => now()],

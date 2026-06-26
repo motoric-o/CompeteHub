@@ -30,10 +30,31 @@ class RegistrationService
      */
     public function checkEligibility(Competition $competition, int $userId): array
     {
-        // Cek duplikat registrasi
-        $existing = Registration::where('competition_id', $competition->id)
-            ->where('user_id', $userId)
-            ->first();
+        $existing = null;
+
+        if ($competition->type === 'team') {
+            $team = \App\Models\Team::where('competition_id', $competition->id)
+                ->whereHas('members', function ($q) use ($userId) {
+                    $q->where('users.id', $userId);
+                })->first();
+
+            if (!$team) {
+                return ['eligible' => false, 'reason' => 'no_team'];
+            }
+
+            if ($team->user_id !== $userId) {
+                return ['eligible' => false, 'reason' => 'not_captain'];
+            }
+
+            $existing = Registration::where('competition_id', $competition->id)
+                ->where('team_id', $team->id)
+                ->first();
+        } else {
+            // Cek duplikat registrasi individual
+            $existing = Registration::where('competition_id', $competition->id)
+                ->where('user_id', $userId)
+                ->first();
+        }
 
         if ($existing) {
             return [
@@ -85,10 +106,22 @@ class RegistrationService
         mixed $paymentProof
     ): Registration {
         return DB::transaction(function () use ($competition, $userId, $formData, $documents, $paymentProof) {
+            $teamId = null;
+            if ($competition->type === 'team') {
+                $team = \App\Models\Team::where('competition_id', $competition->id)
+                    ->whereHas('members', function ($q) use ($userId) {
+                        $q->where('users.id', $userId);
+                    })->first();
+                if ($team) {
+                    $teamId = $team->id;
+                }
+            }
+
             // 1. Create registration record
             $registration = Registration::create([
                 'competition_id' => $competition->id,
                 'user_id'        => $userId,
+                'team_id'        => $teamId,
                 'form_data'      => $formData,
                 'status'         => 'pending',
             ]);

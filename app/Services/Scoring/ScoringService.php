@@ -74,7 +74,7 @@ class ScoringService implements ScoringServiceInterface
             }
 
             // For Judge Score, criteria belong to the round
-            $criteria = ScoringCriterion::where('round_id', $round->id)->get()->keyBy('id');
+            $criteria = ScoringCriterion::where('competition_id', $competition->id)->get()->keyBy('id');
 
             $totalWeightedScore = 0;
             foreach ($criteria as $criterionId => $criterion) {

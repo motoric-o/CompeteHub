@@ -21,7 +21,13 @@ class RegistrationController extends Controller
 
     public function index(): View
     {
-        $registrations = Registration::where('user_id', auth()->id())
+        $userId = auth()->id();
+        $registrations = Registration::where('user_id', $userId)
+            ->orWhereIn('team_id', function ($query) use ($userId) {
+                $query->select('team_id')
+                    ->from('team_members')
+                    ->where('user_id', $userId);
+            })
             ->with(['competition', 'payment', 'documents'])
             ->latest()
             ->get();
@@ -56,6 +62,8 @@ class RegistrationController extends Controller
                 'registration_closed'       => 'Registration period has ended.',
                 'registration_not_open_yet' => 'Registration has not opened yet.',
                 'quota_full'                => 'Registration quota is full.',
+                'no_team'                   => 'Anda harus membuat atau bergabung dengan tim terlebih dahulu.',
+                'not_captain'               => 'Hanya kapten tim yang bisa melakukan pendaftaran.',
             ];
 
             $msg = $messages[$eligibility['reason']] ?? 'Unable to register at this time.';
@@ -89,7 +97,7 @@ class RegistrationController extends Controller
 
     public function show(Competition $competition, Registration $registration): View
     {
-        abort_unless($registration->user_id === auth()->id(), 403);
+        abort_unless($this->isAuthorizedForRegistration($registration), 403);
         abort_unless($registration->competition_id === $competition->id, 404);
 
         $registration->load(['documents', 'payment']);
@@ -185,7 +193,7 @@ class RegistrationController extends Controller
         Registration $registration,
         \App\Services\Facade\NotificationFacade $facade
     ) {
-        abort_unless($registration->user_id === auth()->id(), 403);
+        abort_unless($this->isAuthorizedForRegistration($registration), 403);
         abort_unless($registration->competition_id === $competition->id, 404);
         abort_unless(in_array($registration->status, ['verified', 'payment_ok']), 403, 'Registration not verified.');
 
@@ -213,7 +221,7 @@ class RegistrationController extends Controller
      */
     public function reuploadDocument(Request $request, Competition $competition, Registration $registration): RedirectResponse
     {
-        abort_unless($registration->user_id === auth()->id(), 403);
+        abort_unless($this->isAuthorizedForRegistration($registration), 403);
         abort_unless($registration->competition_id === $competition->id, 404);
 
         $request->validate([
@@ -251,7 +259,7 @@ class RegistrationController extends Controller
      */
     public function reuploadPayment(Request $request, Competition $competition, Registration $registration): RedirectResponse
     {
-        abort_unless($registration->user_id === auth()->id(), 403);
+        abort_unless($this->isAuthorizedForRegistration($registration), 403);
         abort_unless($registration->competition_id === $competition->id, 404);
 
         $request->validate([
@@ -301,5 +309,20 @@ class RegistrationController extends Controller
         }
 
         return null;
+    }
+
+    private function isAuthorizedForRegistration(Registration $registration): bool
+    {
+        if ($registration->user_id === auth()->id()) {
+            return true;
+        }
+
+        if ($registration->team_id) {
+            return \App\Models\TeamMember::where('team_id', $registration->team_id)
+                ->where('user_id', auth()->id())
+                ->exists();
+        }
+
+        return false;
     }
 }

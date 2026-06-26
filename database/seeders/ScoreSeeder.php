@@ -31,15 +31,15 @@ class ScoreSeeder extends Seeder
 
         DB::table('scores')->insert([
             // Alpha Hackathon
-            ['submission_id' => $subAlpha, 'user_id' => $jeryko, 'score' => 85.00, 'notes' => 'Ide kreatif, implementasi cukup baik.', 'scored_at' => now(), 'updated_at' => now()],
+            // ['submission_id' => $subAlpha, 'user_id' => $jeryko, 'score' => 85.00, 'notes' => 'Ide kreatif, implementasi cukup baik.', 'scored_at' => now(), 'updated_at' => now()],
             ['submission_id' => $subAlpha, 'user_id' => $rico,   'score' => 90.00, 'notes' => 'Presentasi menarik, kode bersih.', 'scored_at' => now(), 'updated_at' => now()],
 
             // Beta Hackathon
-            ['submission_id' => $subBeta,  'user_id' => $jeryko, 'score' => 80.00, 'notes' => 'Solusi standar tapi berjalan lancar.', 'scored_at' => now(), 'updated_at' => now()],
+            // ['submission_id' => $subBeta,  'user_id' => $jeryko, 'score' => 80.00, 'notes' => 'Solusi standar tapi berjalan lancar.', 'scored_at' => now(), 'updated_at' => now()],
             ['submission_id' => $subBeta,  'user_id' => $rico,   'score' => 82.00, 'notes' => 'UI rapi, tapi backend masih sederhana.', 'scored_at' => now(), 'updated_at' => now()],
 
             // Gamma Hackathon
-            ['submission_id' => $subGamma, 'user_id' => $jeryko, 'score' => 78.00, 'notes' => 'Fitur dasar lengkap, performa perlu optimasi.', 'scored_at' => now(), 'updated_at' => now()],
+            // ['submission_id' => $subGamma, 'user_id' => $jeryko, 'score' => 78.00, 'notes' => 'Fitur dasar lengkap, performa perlu optimasi.', 'scored_at' => now(), 'updated_at' => now()],
             ['submission_id' => $subGamma, 'user_id' => $rico,   'score' => 81.00, 'notes' => 'Desain modern, penulisan kode terstruktur.', 'scored_at' => now(), 'updated_at' => now()],
 
             // Budi CP

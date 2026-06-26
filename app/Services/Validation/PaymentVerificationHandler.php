@@ -36,11 +36,11 @@ class PaymentVerificationHandler extends RegistrationHandler
         }
 
         if ($payment->status === 'unpaid') {
-            return ValidationResult::fail('Payment has not been made yet.');
+            return ValidationResult::halt('Payment has not been made yet.');
         }
 
         if ($payment->status === 'pending_verification') {
-            return ValidationResult::fail('Payment is pending verification by committee.');
+            return ValidationResult::halt('Payment is pending verification by committee.');
         }
 
         if ($payment->status === 'paid') {
