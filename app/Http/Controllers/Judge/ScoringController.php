@@ -21,7 +21,7 @@ class ScoringController extends Controller
         $user = auth()->user();
 
         $assignments = JuryAssignment::where('user_id', $user->id)
-            ->with('competition.rounds')
+            ->with('competition.rounds.scoringType')
             ->get();
 
         return view('judge.submissions.index', compact('assignments'));
