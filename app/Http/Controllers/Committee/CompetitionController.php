@@ -21,8 +21,7 @@ class CompetitionController extends Controller
 
     public function create(): View
     {
-        $scoringTypes = ScoringType::all();
-        return view('committee.competitions.create', compact('scoringTypes'));
+        return view('committee.competitions.create');
     }
 
     public function store(Request $request): RedirectResponse
@@ -43,6 +42,8 @@ class CompetitionController extends Controller
             'registration_end' => 'nullable|date|after_or_equal:registration_start',
             'status' => 'nullable|in:draft,open,ongoing,finished',
             'rules' => 'nullable|string',
+            'allowed_file_types' => 'nullable|array',
+            'allowed_file_types.*' => 'string',
         ]);
 
         CompetitionFactory::create($validated);
@@ -52,8 +53,7 @@ class CompetitionController extends Controller
 
     public function edit(Competition $competition): View
     {
-        $scoringTypes = ScoringType::all();
-        return view('committee.competitions.edit', compact('competition', 'scoringTypes'));
+        return view('committee.competitions.edit', compact('competition'));
     }
 
     public function update(Request $request, Competition $competition): RedirectResponse
@@ -74,6 +74,8 @@ class CompetitionController extends Controller
             'registration_end' => 'nullable|date|after_or_equal:registration_start',
             'status' => 'nullable|in:draft,open,ongoing,finished',
             'rules' => 'nullable|string',
+            'allowed_file_types' => 'nullable|array',
+            'allowed_file_types.*' => 'string',
         ]);
 
         $competition->update($validated);

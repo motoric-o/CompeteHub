@@ -56,6 +56,21 @@
                 </div>
             </a>
 
+            <a href="{{ route('participant.my-competitions.index') }}" class="card block group">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 rounded-full border border-border flex items-center justify-center text-black group-hover:scale-110 transition-transform" style="background: #FFED35;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                    </div>
+                    <h4 class="text-xl font-bold m-0">Kompetisiku</h4>
+                </div>
+                <p class="text-muted-foreground m-0">Akses cepat ke kompetisi yang sedang Anda ikuti. Pantau jadwal, bracket, dan submit tugas Anda.</p>
+                <div class="mt-4 flex items-center text-sm font-bold group-hover:translate-x-1 transition-transform" style="color: #dcb300;">
+                    Buka Kompetisiku <svg class="ml-1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </div>
+            </a>
+
             <a href="{{ route('teams.index') }}" class="card block group">
                 <div class="flex items-center gap-4 mb-4">
                     <div class="w-12 h-12 rounded-full border border-border flex items-center justify-center text-white group-hover:scale-110 transition-transform" style="background: var(--success);">

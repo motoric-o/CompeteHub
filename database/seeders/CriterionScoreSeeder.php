@@ -9,31 +9,31 @@ class CriterionScoreSeeder extends Seeder
 {
     public function run(): void
     {
-        $hackathonId = DB::table('competitions')->where('name', 'Hackathon Nasional 2025')->value('id');
-        $uiuxId      = DB::table('competitions')->where('name', 'UI/UX Design Competition')->value('id');
-        $dsId        = DB::table('competitions')->where('name', 'Data Science Challenge 2026')->value('id');
-        $iotId       = DB::table('competitions')->where('name', 'IoT Innovation Cup 2025')->value('id');
-        $mobileId    = DB::table('competitions')->where('name', 'Mobile App Dev Arena')->value('id');
+        $hackathonSemiFinal = DB::table('rounds')->where('name', 'Semi Final')->value('id');
+        $hackathonGrandFinal = DB::table('rounds')->where('name', 'Grand Final')->value('id');
+        $dsRound = DB::table('rounds')->where('name', 'Kaggle Phase')->value('id');
+        $iotRound = DB::table('rounds')->where('name', 'Proposal Submission')->value('id');
+        $mobileRound = DB::table('rounds')->where('name', 'App Prototype')->value('id');
 
         // Criteria
-        $critInnovation = DB::table('scoring_criteria')->where('competition_id', $hackathonId)->where('name', 'Innovation & Creativity')->value('id');
-        $critTech       = DB::table('scoring_criteria')->where('competition_id', $hackathonId)->where('name', 'Technical Implementation')->value('id');
-        $critBiz        = DB::table('scoring_criteria')->where('competition_id', $hackathonId)->where('name', 'Business Potential')->value('id');
+        $critInnovation = DB::table('scoring_criteria')->where('round_id', $hackathonSemiFinal)->where('name', 'Innovation & Creativity')->value('id');
+        $critTech       = DB::table('scoring_criteria')->where('round_id', $hackathonSemiFinal)->where('name', 'Technical Implementation')->value('id');
+        $critBiz        = DB::table('scoring_criteria')->where('round_id', $hackathonSemiFinal)->where('name', 'Business Potential')->value('id');
 
-        $critUX         = DB::table('scoring_criteria')->where('competition_id', $uiuxId)->where('name', 'User Experience (UX)')->value('id');
-        $critUI         = DB::table('scoring_criteria')->where('competition_id', $uiuxId)->where('name', 'User Interface (UI)')->value('id');
+        $critUX         = DB::table('scoring_criteria')->where('round_id', $hackathonGrandFinal)->where('name', 'User Experience (UX)')->value('id');
+        $critUI         = DB::table('scoring_criteria')->where('round_id', $hackathonGrandFinal)->where('name', 'User Interface (UI)')->value('id');
 
-        $critDSAcc      = DB::table('scoring_criteria')->where('competition_id', $dsId)->where('name', 'Model Accuracy')->value('id');
-        $critDSMeth     = DB::table('scoring_criteria')->where('competition_id', $dsId)->where('name', 'Methodology')->value('id');
-        $critDSRep      = DB::table('scoring_criteria')->where('competition_id', $dsId)->where('name', 'Report & Visuals')->value('id');
+        $critDSAcc      = DB::table('scoring_criteria')->where('round_id', $dsRound)->where('name', 'Model Accuracy')->value('id');
+        $critDSMeth     = DB::table('scoring_criteria')->where('round_id', $dsRound)->where('name', 'Methodology')->value('id');
+        $critDSRep      = DB::table('scoring_criteria')->where('round_id', $dsRound)->where('name', 'Report & Visuals')->value('id');
 
-        $critIoTHard    = DB::table('scoring_criteria')->where('competition_id', $iotId)->where('name', 'Hardware Reliability')->value('id');
-        $critIoTVal     = DB::table('scoring_criteria')->where('competition_id', $iotId)->where('name', 'Use Case & Value')->value('id');
-        $critIoTPres    = DB::table('scoring_criteria')->where('competition_id', $iotId)->where('name', 'Presentation')->value('id');
+        $critIoTHard    = DB::table('scoring_criteria')->where('round_id', $iotRound)->where('name', 'Hardware Reliability')->value('id');
+        $critIoTVal     = DB::table('scoring_criteria')->where('round_id', $iotRound)->where('name', 'Use Case & Value')->value('id');
+        $critIoTPres    = DB::table('scoring_criteria')->where('round_id', $iotRound)->where('name', 'Presentation')->value('id');
 
-        $critMobUI      = DB::table('scoring_criteria')->where('competition_id', $mobileId)->where('name', 'User Interface & UX')->value('id');
-        $critMobTech    = DB::table('scoring_criteria')->where('competition_id', $mobileId)->where('name', 'Technical Execution')->value('id');
-        $critMobBiz     = DB::table('scoring_criteria')->where('competition_id', $mobileId)->where('name', 'Business Viability')->value('id');
+        $critMobUI      = DB::table('scoring_criteria')->where('round_id', $mobileRound)->where('name', 'User Interface & UX')->value('id');
+        $critMobTech    = DB::table('scoring_criteria')->where('round_id', $mobileRound)->where('name', 'Technical Execution')->value('id');
+        $critMobBiz     = DB::table('scoring_criteria')->where('round_id', $mobileRound)->where('name', 'Business Viability')->value('id');
 
         // Submissions
         $subAlpha   = DB::table('submissions')->where('file_path', 'submissions/alpha_penyisihan.zip')->value('id');

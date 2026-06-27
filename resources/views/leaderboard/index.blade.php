@@ -37,7 +37,7 @@
                         <tr>
                             <th class="px-6 py-4 w-16 text-center">Rank</th>
                             <th class="px-6 py-4">Peserta</th>
-                            <th class="px-6 py-4 text-center">Judge Score</th>
+                            <th id="scoreHeader" class="px-6 py-4 text-center">Judge Score</th>
                             <th class="px-6 py-4 text-center">Time Bonus</th>
                             <th class="px-6 py-4 text-center">Total</th>
                         </tr>
@@ -51,7 +51,7 @@
             </div>
 
             {{-- Legend --}}
-            <div class="mt-4 bg-white rounded-lg shadow-sm p-4 text-xs text-gray-500">
+            <div id="legendContent" class="mt-4 bg-white rounded-lg shadow-sm p-4 text-xs text-gray-500">
                 <p><strong>Judge Score:</strong> Nilai rata-rata dari semua juri (max 100).</p>
                 <p><strong>Time Bonus:</strong> Bonus waktu otomatis — 1/3 tercepat dari total pendaftar mendapat bonus 5→1 pts. Revisi tidak merubah bonus waktu yang sudah didapat.</p>
                 <p><strong>Total:</strong> Judge Score + Time Bonus (max 105).</p>
@@ -82,7 +82,7 @@
             return `<span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 text-gray-600 font-semibold text-sm">${rank}</span>`;
         }
 
-        function renderPodium(entries) {
+        function renderPodium(entries, isVoting) {
             const c = document.getElementById('podiumContainer');
             const top3 = entries.slice(0, 3);
             if (!top3.length) { c.innerHTML = ''; return; }
@@ -92,12 +92,13 @@
             if (top3[2]) order.push(top3[2]);
             c.innerHTML = order.map(e => {
                 const r = rc[e.rank] || rc[3];
+                const scoreDisplay = isVoting ? Math.floor(e.judge_score) : e.judge_score.toFixed(1);
                 return `<div class="podium-card flex flex-col items-center">
                     <div class="text-3xl mb-2">${r.emoji}</div>
                     <div class="w-12 h-12 rounded-full bg-gray-200 border border-gray-300 flex items-center justify-center text-gray-700 font-bold text-lg mb-2 shadow-sm">${e.name.charAt(0).toUpperCase()}</div>
                     <p class="font-bold text-gray-800 text-sm text-center max-w-[120px] truncate">${e.name}</p>
-                    <p class="text-xs text-gray-500">${e.judge_score.toFixed(1)} + ${e.time_bonus.toFixed(1)}</p>
-                    <p class="text-lg font-extrabold ${r.text}">${e.total_score.toFixed(2)}</p>
+                    <p class="text-xs text-gray-500">${scoreDisplay} + ${e.time_bonus.toFixed(1)}</p>
+                    <p class="text-lg font-extrabold ${r.text}">${isVoting ? Math.floor(e.total_score) : e.total_score.toFixed(2)}</p>
                     <div class="${r.pH} w-24 ${r.pBg} rounded-t-sm mt-2 flex items-center justify-center border border-b-0 border-black/5">
                         <span class="text-white font-bold text-2xl">#${e.rank}</span>
                     </div>
@@ -105,7 +106,7 @@
             }).join('');
         }
 
-        function renderTable(entries) {
+        function renderTable(entries, isVoting) {
             const tbody = document.getElementById('leaderboardBody');
             const empty = document.getElementById('emptyState');
             if (!entries.length) { tbody.innerHTML = ''; empty.classList.remove('hidden'); return; }
@@ -129,6 +130,10 @@
                     }
                 }
 
+                const scoreDisplay = isVoting ? Math.floor(e.judge_score) : e.judge_score.toFixed(1);
+                const scoreDenominator = isVoting ? '' : '<span class="text-xs text-gray-400">/100</span>';
+                const totalDisplay = isVoting ? Math.floor(e.total_score) : e.total_score.toFixed(2);
+
                 return `<tr class="${bg} ${anim} border-b border-gray-100 hover:bg-gray-50 transition-colors">
                     <td class="px-6 py-4 text-center">
                         <div class="flex items-center justify-center gap-2">
@@ -142,9 +147,9 @@
                             <div><p class="font-semibold text-gray-800">${e.name}</p><p class="text-xs text-gray-500">${e.type === 'team' ? 'Tim' : 'Individu'}</p></div>
                         </div>
                     </td>
-                    <td class="px-6 py-4 text-center font-semibold text-gray-800">${e.judge_score.toFixed(1)}<span class="text-xs text-gray-400">/100</span></td>
+                    <td class="px-6 py-4 text-center font-semibold text-gray-800">${scoreDisplay}${scoreDenominator}</td>
                     <td class="px-6 py-4 text-center"><span class="px-2 py-0.5 rounded text-xs font-semibold ${e.time_bonus > 0 ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-gray-50 border border-gray-200 text-gray-500'}">+${e.time_bonus.toFixed(1)}</span></td>
-                    <td class="px-6 py-4 text-center text-lg font-bold ${e.rank <= 3 ? (rc[e.rank]?.text || 'text-gray-900') : 'text-gray-900'}">${e.total_score.toFixed(2)}</td>
+                    <td class="px-6 py-4 text-center text-lg font-bold ${e.rank <= 3 ? (rc[e.rank]?.text || 'text-gray-900') : 'text-gray-900'}">${totalDisplay}</td>
                 </tr>`;
             }).join('');
             previousData = {};
@@ -158,8 +163,32 @@
                 const res = await fetch(url, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
                 if (!res.ok) throw new Error();
                 const data = await res.json();
-                renderPodium(data.entries);
-                renderTable(data.entries);
+                
+                const isVoting = data.scoring_type === 'Community Voting';
+                const isTimeBased = data.scoring_type === 'Time Based';
+                
+                // Update table header
+                if (isVoting) {
+                    document.getElementById('scoreHeader').innerText = 'Total Votes';
+                } else if (isTimeBased) {
+                    document.getElementById('scoreHeader').innerText = 'Time Score';
+                } else if (data.scoring_type === 'Global') {
+                    document.getElementById('scoreHeader').innerText = 'Base Score';
+                } else {
+                    document.getElementById('scoreHeader').innerText = 'Judge Score';
+                }
+                
+                // Update legend
+                if (isVoting) {
+                    document.getElementById('legendContent').innerHTML = `<p><strong>Total Votes:</strong> Jumlah suara (vote) dari komunitas yang terkumpul.</p><p><strong>Time Bonus:</strong> Bonus waktu otomatis — 1/3 tercepat mendapat bonus 5→1 pts.</p><p><strong>Total:</strong> Total Votes + Time Bonus.</p>`;
+                } else if (isTimeBased) {
+                    document.getElementById('legendContent').innerHTML = `<p><strong>Time Score:</strong> Nilai otomatis berdasarkan kecepatan submission (max 100). Semakin cepat dikirim dari waktu mulai ronde, semakin tinggi nilainya.</p><p><strong>Time Bonus:</strong> Bonus kecepatan relatif — 1/3 tercepat mendapat bonus 5→1 pts.</p><p><strong>Total:</strong> Time Score + Time Bonus (max 105).</p>`;
+                } else {
+                    document.getElementById('legendContent').innerHTML = `<p><strong>Judge Score:</strong> Nilai rata-rata dari semua juri (max 100).</p><p><strong>Time Bonus:</strong> Bonus waktu otomatis — 1/3 tercepat dari total pendaftar mendapat bonus 5→1 pts. Revisi tidak merubah bonus waktu yang sudah didapat.</p><p><strong>Total:</strong> Judge Score + Time Bonus (max 105).</p>`;
+                }
+                
+                renderPodium(data.entries, isVoting);
+                renderTable(data.entries, isVoting);
                 document.getElementById('lastUpdated').textContent = `Live — updated ${new Date().toLocaleTimeString()}`;
             } catch (e) {
                 document.getElementById('lastUpdated').textContent = '⚠️ Connection error — retrying...';

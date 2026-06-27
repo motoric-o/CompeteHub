@@ -9,15 +9,15 @@ class ScoringCriterionSeeder extends Seeder
 {
     public function run(): void
     {
-        $hackathonId = DB::table('competitions')->where('name', 'Hackathon Nasional 2025')->value('id');
-        $uiuxId = DB::table('competitions')->where('name', 'UI/UX Design Competition')->value('id');
+        $hackathonSemiFinal = DB::table('rounds')->where('name', 'Semi Final')->value('id');
+        $uiuxRound = DB::table('rounds')->where('name', 'Babak Utama')->value('id');
 
         $criteria = [];
 
-        if ($hackathonId) {
+        if ($hackathonSemiFinal) {
             $criteria = array_merge($criteria, [
                 [
-                    'competition_id' => $hackathonId,
+                    'round_id' => $hackathonSemiFinal,
                     'name' => 'Innovation & Creativity',
                     'description' => 'How unique and creative is the solution?',
                     'max_score' => 100,
@@ -26,7 +26,7 @@ class ScoringCriterionSeeder extends Seeder
                     'updated_at' => now(),
                 ],
                 [
-                    'competition_id' => $hackathonId,
+                    'round_id' => $hackathonSemiFinal,
                     'name' => 'Technical Implementation',
                     'description' => 'Quality of code and architecture.',
                     'max_score' => 100,
@@ -35,7 +35,7 @@ class ScoringCriterionSeeder extends Seeder
                     'updated_at' => now(),
                 ],
                 [
-                    'competition_id' => $hackathonId,
+                    'round_id' => $hackathonSemiFinal,
                     'name' => 'Business Potential',
                     'description' => 'Market viability of the product.',
                     'max_score' => 100,
@@ -46,10 +46,12 @@ class ScoringCriterionSeeder extends Seeder
             ]);
         }
 
-        if ($uiuxId) {
+        // We don't have UI/UX rounds seeded properly yet, let's just seed to Hackathon Grand Final as an example
+        $hackathonGrandFinal = DB::table('rounds')->where('name', 'Grand Final')->value('id');
+        if ($hackathonGrandFinal) {
             $criteria = array_merge($criteria, [
                 [
-                    'competition_id' => $uiuxId,
+                    'round_id' => $hackathonGrandFinal,
                     'name' => 'User Experience (UX)',
                     'description' => 'Flow and usability of the design.',
                     'max_score' => 100,
@@ -58,7 +60,7 @@ class ScoringCriterionSeeder extends Seeder
                     'updated_at' => now(),
                 ],
                 [
-                    'competition_id' => $uiuxId,
+                    'round_id' => $hackathonGrandFinal,
                     'name' => 'User Interface (UI)',
                     'description' => 'Aesthetic and visual appeal.',
                     'max_score' => 100,
@@ -69,31 +71,31 @@ class ScoringCriterionSeeder extends Seeder
             ]);
         }
 
-        $dsId = DB::table('competitions')->where('name', 'Data Science Challenge 2026')->value('id');
-        $iotId = DB::table('competitions')->where('name', 'IoT Innovation Cup 2025')->value('id');
-        $mobileId = DB::table('competitions')->where('name', 'Mobile App Dev Arena')->value('id');
+        $dsRound = DB::table('rounds')->where('name', 'Kaggle Phase')->value('id');
+        $iotRound = DB::table('rounds')->where('name', 'Proposal Submission')->value('id');
+        $mobileRound = DB::table('rounds')->where('name', 'App Prototype')->value('id');
 
-        if ($dsId) {
+        if ($dsRound) {
             $criteria = array_merge($criteria, [
-                ['competition_id' => $dsId, 'name' => 'Model Accuracy', 'description' => 'Metrics on prediction performance.', 'max_score' => 100, 'weight' => 0.50, 'created_at' => now(), 'updated_at' => now()],
-                ['competition_id' => $dsId, 'name' => 'Methodology', 'description' => 'Feature engineering and model logic.', 'max_score' => 100, 'weight' => 0.30, 'created_at' => now(), 'updated_at' => now()],
-                ['competition_id' => $dsId, 'name' => 'Report & Visuals', 'description' => 'Clarity of documentation.', 'max_score' => 100, 'weight' => 0.20, 'created_at' => now(), 'updated_at' => now()],
+                ['round_id' => $dsRound, 'name' => 'Model Accuracy', 'description' => 'Metrics on prediction performance.', 'max_score' => 100, 'weight' => 0.50, 'created_at' => now(), 'updated_at' => now()],
+                ['round_id' => $dsRound, 'name' => 'Methodology', 'description' => 'Feature engineering and model logic.', 'max_score' => 100, 'weight' => 0.30, 'created_at' => now(), 'updated_at' => now()],
+                ['round_id' => $dsRound, 'name' => 'Report & Visuals', 'description' => 'Clarity of documentation.', 'max_score' => 100, 'weight' => 0.20, 'created_at' => now(), 'updated_at' => now()],
             ]);
         }
 
-        if ($iotId) {
+        if ($iotRound) {
             $criteria = array_merge($criteria, [
-                ['competition_id' => $iotId, 'name' => 'Hardware Reliability', 'description' => 'Does it work consistently?', 'max_score' => 100, 'weight' => 0.40, 'created_at' => now(), 'updated_at' => now()],
-                ['competition_id' => $iotId, 'name' => 'Use Case & Value', 'description' => 'Real-world utility.', 'max_score' => 100, 'weight' => 0.40, 'created_at' => now(), 'updated_at' => now()],
-                ['competition_id' => $iotId, 'name' => 'Presentation', 'description' => 'Quality of pitch and demo.', 'max_score' => 100, 'weight' => 0.20, 'created_at' => now(), 'updated_at' => now()],
+                ['round_id' => $iotRound, 'name' => 'Hardware Reliability', 'description' => 'Does it work consistently?', 'max_score' => 100, 'weight' => 0.40, 'created_at' => now(), 'updated_at' => now()],
+                ['round_id' => $iotRound, 'name' => 'Use Case & Value', 'description' => 'Real-world utility.', 'max_score' => 100, 'weight' => 0.40, 'created_at' => now(), 'updated_at' => now()],
+                ['round_id' => $iotRound, 'name' => 'Presentation', 'description' => 'Quality of pitch and demo.', 'max_score' => 100, 'weight' => 0.20, 'created_at' => now(), 'updated_at' => now()],
             ]);
         }
 
-        if ($mobileId) {
+        if ($mobileRound) {
             $criteria = array_merge($criteria, [
-                ['competition_id' => $mobileId, 'name' => 'User Interface & UX', 'description' => 'Aesthetics and usability.', 'max_score' => 100, 'weight' => 0.35, 'created_at' => now(), 'updated_at' => now()],
-                ['competition_id' => $mobileId, 'name' => 'Technical Execution', 'description' => 'Code structure and api integration.', 'max_score' => 100, 'weight' => 0.35, 'created_at' => now(), 'updated_at' => now()],
-                ['competition_id' => $mobileId, 'name' => 'Business Viability', 'description' => 'Market potential.', 'max_score' => 100, 'weight' => 0.30, 'created_at' => now(), 'updated_at' => now()],
+                ['round_id' => $mobileRound, 'name' => 'User Interface & UX', 'description' => 'Aesthetics and usability.', 'max_score' => 100, 'weight' => 0.35, 'created_at' => now(), 'updated_at' => now()],
+                ['round_id' => $mobileRound, 'name' => 'Technical Execution', 'description' => 'Code structure and api integration.', 'max_score' => 100, 'weight' => 0.35, 'created_at' => now(), 'updated_at' => now()],
+                ['round_id' => $mobileRound, 'name' => 'Business Viability', 'description' => 'Market potential.', 'max_score' => 100, 'weight' => 0.30, 'created_at' => now(), 'updated_at' => now()],
             ]);
         }
 

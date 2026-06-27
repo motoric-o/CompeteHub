@@ -123,6 +123,21 @@
                     <option value="open" {{ old('status') == 'open' ? 'selected' : '' }}>Langsung Buka</option>
                 </select>
             </div>
+
+
+            <div class="form-group" style="grid-column: span 2;">
+                <label class="form-label">Tipe File Submisi yang Diizinkan</label>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    @php $oldTypes = old('allowed_file_types', ['pdf', 'zip', 'mp4']); @endphp
+                    @foreach(['pdf', 'zip', 'mp4', 'png', 'jpg', 'fig', 'csv'] as $ext)
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input type="checkbox" name="allowed_file_types[]" id="ext_{{ $ext }}" value="{{ $ext }}" {{ in_array($ext, $oldTypes) ? 'checked' : '' }}>
+                        <label for="ext_{{ $ext }}" style="margin-bottom: 0;">.{{ strtoupper($ext) }}</label>
+                    </div>
+                    @endforeach
+                </div>
+                <small class="text-gray-500">Selain file, peserta juga bisa mengirim URL.</small>
+            </div>
         </div>
 
         <div style="display: flex; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--color-border);">

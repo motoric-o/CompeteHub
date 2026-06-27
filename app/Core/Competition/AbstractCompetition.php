@@ -19,23 +19,33 @@ abstract class AbstractCompetition
 
     public function __construct(Competition $competition)
     {
-        $competition->load('scoringType');
+        $competition->loadMissing(['scoringType', 'rounds.scoringType']);
         $this->competition = $competition;
         $this->scoring = $this->resolveScoringStrategy($competition);
     }
 
     protected function resolveScoringStrategy(Competition $competition): ScoringStrategy
     {
-        if ($competition->scoringType && $competition->scoringType->name === 'Time Based') {
-            return new TimeBasedScoringStrategy($competition->time_scoring_threshold ?? 0);
-        } else if ($competition->scoringType && $competition->scoringType->name === 'Judge Score') {
-            return new JudgeBasedScoringStrategy();
-        } else if ($competition->scoringType && $competition->scoringType->name === 'Quiz Automatic') {
-            return new QuizAutomaticScoringStrategy();
+        $scoringType = $competition->scoringType;
+
+        if (!$scoringType) {
+            $round = $competition->rounds->firstWhere('status', 'active') ?? $competition->rounds->first();
+            $scoringType = $round?->scoringType;
+        }
+
+        if ($scoringType) {
+            if ($scoringType->name === 'Time Based') {
+                return new TimeBasedScoringStrategy($competition->time_scoring_threshold ?? 0);
+            } elseif ($scoringType->name === 'Judge Score') {
+                return new JudgeBasedScoringStrategy();
+            } elseif ($scoringType->name === 'Quiz Automatic') {
+                return new QuizAutomaticScoringStrategy();
+            }
         }
 
         return new JudgeBasedScoringStrategy(); // fallback
     }
+
 
     public function isRegistrationOpen(): bool
     {

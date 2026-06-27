@@ -18,17 +18,22 @@
                                     {{ $assignment->competition->description ?? 'Deskripsi kompetisi belum tersedia.' }}
                                 </p>
 
-                                @if($assignment->competition->rounds->isNotEmpty())
+                                @php
+                                    $judgeRounds = $assignment->competition->rounds->filter(function($r) {
+                                        return $r->scoringType && $r->scoringType->name === 'Judge Score';
+                                    });
+                                @endphp
+                                @if($judgeRounds->isNotEmpty())
                                     <div class="mt-auto">
-                                        <a href="{{ route('judge.submissions.round', [$assignment->competition, $assignment->competition->rounds->first()]) }}" 
+                                        <a href="{{ route('judge.submissions.round', [$assignment->competition, $judgeRounds->first()]) }}" 
                                            class="btn btn-primary btn-sm w-full">
                                             VIEW SUBMISSIONS
                                         </a>
                                     </div>
                                 @else
                                     <div class="mt-auto">
-                                        <span class="btn btn-secondary btn-sm w-full opacity-50 cursor-not-allowed">
-                                            NO ROUNDS
+                                        <span class="btn btn-secondary btn-sm w-full opacity-50 cursor-not-allowed" title="Tidak ada babak penilaian juri di kompetisi ini">
+                                            NO JUDGE ROUNDS
                                         </span>
                                     </div>
                                 @endif

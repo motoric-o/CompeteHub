@@ -17,6 +17,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BroadcastController;
 use App\Http\Controllers\Judge\ScoringController;
 use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\PublicCompetitionController;
 
 use App\Models\Competition;
 
@@ -28,6 +29,8 @@ Route::get('/', function (\Illuminate\Http\Request $request) {
     $competitions = $query->get();
     return view('welcome', compact('competitions'));
 })->name('home');
+
+Route::get('/competitions/{competition}', [PublicCompetitionController::class, 'show'])->name('competitions.show');
 
 
 
@@ -194,6 +197,7 @@ Route::middleware(['auth', 'verified', 'role:participant'])
         Route::get('/competitions', [ParticipantCompetitionController::class, 'index'])
             ->name('competitions.index');
 
+        // Registrations
         Route::get('/registrations', [RegistrationController::class, 'index'])
             ->name('registrations.index');
 
@@ -203,7 +207,6 @@ Route::middleware(['auth', 'verified', 'role:participant'])
         Route::post('/competitions/{competition}/register', [RegistrationController::class, 'store'])
             ->name('registrations.store');
 
-        // AJAX pre-check endpoint — validates form completeness before final submit
         Route::post('/competitions/{competition}/register/pre-check', [RegistrationController::class, 'preCheck'])
             ->name('registrations.pre-check');
 
@@ -218,6 +221,12 @@ Route::middleware(['auth', 'verified', 'role:participant'])
 
         Route::get('/competitions/{competition}/registrations/{registration}/certificate', [RegistrationController::class, 'downloadCertificate'])
             ->name('registrations.certificate');
+
+        // My Competitions Hub
+        Route::get('/my-competitions', [\App\Http\Controllers\Participant\MyCompetitionController::class, 'index'])
+            ->name('my-competitions.index');
+        Route::get('/my-competitions/{competition}', [\App\Http\Controllers\Participant\MyCompetitionController::class, 'show'])
+            ->name('my-competitions.show');
 
 
         Route::get('/competitions/{competition}/submissions', [SubmissionController::class, 'index'])
@@ -250,6 +259,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/leaderboards', [LeaderboardController::class, 'list'])->name('leaderboards.list');
     Route::get('/competitions/{competition}/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard.index');
     Route::get('/api/competitions/{competition}/leaderboard', [LeaderboardController::class, 'apiData'])->name('leaderboard.api');
+});
+
+// ── Community Voting
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/community/galleries', [\App\Http\Controllers\Community\GalleryController::class, 'list'])
+        ->name('community.gallery.index');
+    Route::get('/community/competitions/{competition}/rounds/{round}/gallery', [\App\Http\Controllers\Community\GalleryController::class, 'index'])
+        ->name('community.gallery');
+    Route::post('/community/submissions/{submission}/vote', [\App\Http\Controllers\Community\VotingController::class, 'toggle'])
+        ->name('community.vote.toggle');
 });
 
 require __DIR__ . '/auth.php';

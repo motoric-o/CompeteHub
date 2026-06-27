@@ -100,7 +100,7 @@
                                                             $maxScore = $competition->isQuiz() ? $round->quizQuestions->sum('points') : 100;
                                                         @endphp
                                                         <div class="border border-gray-200 px-3 py-1.5 rounded-md bg-white">
-                                                            <span class="text-gray-500 text-xs font-medium uppercase tracking-wider block">{{ $competition->isQuiz() ? 'Quiz Score' : 'Judge Score' }}</span>
+                                                            <span class="text-gray-500 text-xs font-medium uppercase tracking-wider block">{{ $competition->isQuiz() ? 'Quiz Score' : ($round->scoringType && $round->scoringType->name === 'Time Based' ? 'Time Score' : 'Judge Score') }}</span>
                                                             <span class="font-bold text-gray-900">{{ floatval($submission->final_score) }}<span class="text-gray-400 font-normal">/{{ $maxScore }}</span></span>
                                                         </div>
                                                     @endif

@@ -59,7 +59,7 @@ class ScoreProxy implements ScoringServiceInterface
             }
         } else {
             // Validate each criterion score
-            $criteria = ScoringCriterion::where('competition_id', $submission->competition_id)->get()->keyBy('id');
+            $criteria = ScoringCriterion::where('round_id', $round->id)->get()->keyBy('id');
 
             foreach ($criteria as $criterionId => $criterion) {
                 if (!isset($criteriaScores[$criterionId])) {

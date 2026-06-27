@@ -20,6 +20,21 @@
             @method('PUT')
             
             <div class="form-group mb-4">
+                <label for="round_id" class="form-label">Ronde (Babak)</label>
+                <select name="round_id" id="round_id" class="form-control @error('round_id') is-invalid @enderror" required>
+                    <option value="">-- Pilih Ronde --</option>
+                    @foreach($rounds as $round)
+                        <option value="{{ $round->id }}" {{ old('round_id', $scoringCriterion->round_id) == $round->id ? 'selected' : '' }}>
+                            {{ $round->name }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('round_id')
+                    <div class="text-danger text-sm mt-1" style="color: red;">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="form-group mb-4">
                 <label for="name" class="form-label">Nama Kriteria</label>
                 <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $scoringCriterion->name) }}" required>
                 @error('name')

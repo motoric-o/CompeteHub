@@ -158,12 +158,13 @@ class SubmissionController extends Controller
         }
 
         $isQuiz = $competition->isQuiz();
+        $file = $request->file('submission_file');
+        $url = $request->input('submission_url');
         $filePath = null;
         $fileType = null;
         $fileSize = null;
 
-        if (!$isQuiz) {
-            $file = $request->file('submission_file');
+        if (!$isQuiz && $file) {
             $filePath = $file->store('submissions/' . $competition->id . '/' . $round->id, 'public');
             $fileType = $file->getClientOriginalExtension();
             $fileSize = $file->getSize();
@@ -183,19 +184,33 @@ class SubmissionController extends Controller
         $subject->attach(new EmailNotifierObserver());
 
         if ($submission) {
-            if (!$isQuiz && $submission->file_path) {
+            if (!$isQuiz && $file && $submission->file_path) {
                 Storage::disk('public')->delete($submission->file_path);
             }
 
             $newRevisionCount = $submission->revision_count + 1;
 
-            $submission->update([
-                'file_path'      => $filePath,
-                'file_type'      => $fileType,
-                'file_size'      => $fileSize,
+            $updateData = [
                 'status'         => 'submitted',
                 'revision_count' => $newRevisionCount,
-            ]);
+            ];
+
+            if ($file) {
+                $updateData['file_path'] = $filePath;
+                $updateData['file_type'] = $fileType;
+                $updateData['file_size'] = $fileSize;
+                $updateData['submission_url'] = null;
+            } elseif ($url) {
+                if ($submission->file_path) {
+                    Storage::disk('public')->delete($submission->file_path);
+                }
+                $updateData['file_path'] = null;
+                $updateData['file_type'] = null;
+                $updateData['file_size'] = null;
+                $updateData['submission_url'] = $url;
+            }
+
+            $submission->update($updateData);
 
             if ($isQuiz) {
                 $this->saveQuizAnswers($submission, $request->input('answers', []));
@@ -220,6 +235,7 @@ class SubmissionController extends Controller
                 'user_id'        => $data['user_id'],
                 'team_id'        => $data['team_id'],
                 'file_path'      => $filePath,
+                'submission_url' => $url,
                 'file_type'      => $fileType,
                 'file_size'      => $fileSize,
                 'status'         => 'submitted',

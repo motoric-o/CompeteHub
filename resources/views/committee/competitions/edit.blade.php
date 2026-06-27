@@ -121,17 +121,32 @@
 
             <div class="form-group" style="grid-column: span 2;">
                 <label for="rules" class="form-label">Aturan & Ketentuan</label>
-                <textarea name="rules" id="rules" class="form-control" rows="5">{{ old('rules', $competition->rules) }}</textarea>
+                <textarea name="rules" id="rules" class="form-control" rows="5" placeholder="Tuliskan aturan main, kriteria penilaian, dll...">{{ old('rules', $competition->rules) }}</textarea>
             </div>
 
             <div class="form-group">
                 <label for="status" class="form-label">Status</label>
                 <select name="status" id="status" class="form-control">
                     <option value="draft" {{ old('status', $competition->status) == 'draft' ? 'selected' : '' }}>Draft</option>
-                    <option value="open" {{ old('status', $competition->status) == 'open' ? 'selected' : '' }}>Open</option>
-                    <option value="ongoing" {{ old('status', $competition->status) == 'ongoing' ? 'selected' : '' }}>Ongoing</option>
-                    <option value="finished" {{ old('status', $competition->status) == 'finished' ? 'selected' : '' }}>Finished</option>
+                    <option value="open" {{ old('status', $competition->status) == 'open' ? 'selected' : '' }}>Buka Pendaftaran</option>
+                    <option value="ongoing" {{ old('status', $competition->status) == 'ongoing' ? 'selected' : '' }}>Sedang Berlangsung</option>
+                    <option value="finished" {{ old('status', $competition->status) == 'finished' ? 'selected' : '' }}>Selesai</option>
                 </select>
+            </div>
+
+
+            <div class="form-group" style="grid-column: span 2;">
+                <label class="form-label">Tipe File Submisi yang Diizinkan</label>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    @php $oldTypes = old('allowed_file_types', $competition->allowed_file_types ?: ['pdf', 'zip', 'mp4']); @endphp
+                    @foreach(['pdf', 'zip', 'mp4', 'png', 'jpg', 'fig', 'csv'] as $ext)
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input type="checkbox" name="allowed_file_types[]" id="ext_{{ $ext }}" value="{{ $ext }}" {{ in_array($ext, $oldTypes) ? 'checked' : '' }}>
+                        <label for="ext_{{ $ext }}" style="margin-bottom: 0;">.{{ strtoupper($ext) }}</label>
+                    </div>
+                    @endforeach
+                </div>
+                <small class="text-gray-500">Selain file, peserta juga bisa mengirim URL.</small>
             </div>
         </div>
 

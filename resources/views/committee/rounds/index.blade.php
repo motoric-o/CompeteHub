@@ -54,7 +54,15 @@
                             @if($competition->isQuiz())
                                 <a href="{{ route('committee.rounds.questions.index', [$competition, $round]) }}" class="btn btn-sm" style="background-color: var(--secondary); color: var(--secondary-foreground); border: 1px solid var(--border);">Atur Soal</a>
                             @endif
-                            <a href="{{ route('committee.rounds.show', [$competition, $round]) }}" class="btn btn-sm btn-primary">Atur Bagan</a>
+                            @if($round->status === 'active')
+                                <form action="{{ route('committee.rounds.complete-and-next', [$competition, $round]) }}" method="POST" class="inline" onsubmit="return confirm('Tutup babak ini dan mulai babak berikutnya?');">
+                                    @csrf
+                                    <button type="submit" class="btn btn-sm" style="background-color: var(--success, #10B981); color: white; border: 1px solid var(--success, #10B981);">Selesai & Lanjut</button>
+                                </form>
+                            @endif
+                            <a href="{{ route('committee.rounds.show', [$competition, $round]) }}" class="btn btn-sm btn-primary">
+                                {{ $round->is_bracket ? 'Atur Bagan' : 'Detail Babak' }}
+                            </a>
                             <a href="{{ route('committee.rounds.edit', [$competition, $round]) }}" class="btn btn-sm btn-outline">Edit</a>
                             <form action="{{ route('committee.rounds.destroy', [$competition, $round]) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus babak ini?');">
                                 @csrf

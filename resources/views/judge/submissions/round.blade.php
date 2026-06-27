@@ -12,7 +12,7 @@
 
             <div class="mb-4 flex items-center justify-between">
                 <a href="{{ route('judge.submissions.index') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                    Kembali ke Daftar Kompetisi
+                    &larr; Kembali ke Daftar Kompetisi
                 </a>
                 <div class="flex gap-2">
                     <a href="{{ route('judge.submissions.queue', [$competition, $round]) }}" 
@@ -24,6 +24,18 @@
                         Leaderboard
                     </a>
                 </div>
+            </div>
+
+            <!-- Round Navigation -->
+            <div class="mb-6 flex gap-2 overflow-x-auto pb-2">
+                @foreach($competition->rounds as $r)
+                    @if($r->scoringType && $r->scoringType->name === 'Judge Score')
+                        <a href="{{ route('judge.submissions.round', [$competition, $r]) }}" 
+                           class="px-4 py-2 rounded-lg font-bold border whitespace-nowrap {{ $r->id === $round->id ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' }}">
+                            {{ $r->name }}
+                        </a>
+                    @endif
+                @endforeach
             </div>
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200">

@@ -62,8 +62,8 @@
                                     @endif
                                 </div>
 
-                                <a href="{{ route('participant.registrations.create', $competition) }}" class="btn btn-primary w-full text-center py-3">
-                                    Daftar Sekarang
+                                <a href="{{ route('competitions.show', $competition) }}" class="btn btn-primary w-full text-center py-3">
+                                    Lihat Detail & Daftar
                                 </a>
                             </div>
                         </div>

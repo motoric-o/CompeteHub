@@ -110,23 +110,40 @@
                             </div>
                         @else
                             <div class="mb-4">
-                                <x-input-label for="submission_file" :value="__('File Submission (PDF, ZIP, MP4 - Max 20MB)')" class="font-semibold" />
-                                <input type="file" name="submission_file" id="submission_file" class="mt-2 block w-full text-sm text-gray-600
-                                  file:mr-4 file:py-2 file:px-4
-                                  file:rounded-md file:border file:border-gray-300
-                                  file:text-sm file:font-semibold
-                                  file:bg-white file:text-gray-700
-                                  hover:file:bg-gray-50 cursor-pointer" required>
+                                <label class="block font-semibold text-gray-800 mb-2">Option 1: Upload File</label>
+                                @php
+                                    $allowedFormats = 'PDF, ZIP, MP4';
+                                    if (!empty($competition->allowed_file_types)) {
+                                        $allowedFormats = is_array($competition->allowed_file_types) 
+                                            ? implode(', ', $competition->allowed_file_types) 
+                                            : $competition->allowed_file_types;
+                                    }
+                                @endphp
+                                <p class="text-xs text-gray-500 mb-2">Allowed formats: {{ strtoupper($allowedFormats) }}. Max 20MB.</p>
+                                <input type="file" name="submission_file" id="submission_file" class="block w-full border-2 border-black rounded-md p-2 bg-white cursor-pointer hover:bg-gray-50 focus:ring-primary transition-all duration-200">
                                 <x-input-error :messages="$errors->get('submission_file')" class="mt-2" />
                             </div>
+
+                        <div class="flex items-center my-6">
+                            <div class="flex-grow border-t border-gray-300"></div>
+                            <span class="flex-shrink-0 mx-4 text-gray-400 font-medium text-sm">OR</span>
+                            <div class="flex-grow border-t border-gray-300"></div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="submission_url" class="block font-semibold text-gray-800 mb-2">Option 2: Submit URL</label>
+                            <p class="text-xs text-gray-500 mb-2">E.g., GitHub repository, Figma link, YouTube video.</p>
+                            <input type="url" name="submission_url" id="submission_url" placeholder="https://..." class="block w-full border-2 border-black rounded-md p-2 bg-white focus:ring-primary focus:border-black transition-all duration-200">
+                            <x-input-error :messages="$errors->get('submission_url')" class="mt-2" />
+                        </div>
                         @endif
 
                         <div class="flex items-center justify-end mt-8">
                             <a href="{{ route('participant.submissions.index', $competition) }}" class="text-gray-600 hover:text-gray-900 text-sm font-medium mr-4">
                                 Batal
                             </a>
-                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                                {{ $submission ? 'Submit Jawaban Baru' : 'Submit Jawaban' }}
+                            <button type="submit" class="inline-flex items-center px-6 py-3 bg-[#FFED35] border-2 border-black rounded-[1rem] font-bold text-black uppercase tracking-widest hover:-translate-y-[2px] shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_rgba(0,0,0,1)] transition-all duration-200">
+                                {{ $submission ? 'Upload Revisi' : 'Upload Submission' }}
                             </button>
                         </div>
                     </form>
@@ -141,12 +158,19 @@
     if (form) {
         form.addEventListener('submit', function(e) {
             const fileInput = document.getElementById('submission_file');
-            if (fileInput && fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                if (file.size > 20 * 1024 * 1024) {
-                    e.preventDefault();
-                    alert('File terlalu besar! Maks 20 MB.');
-                }
+            const urlInput = document.getElementById('submission_url');
+            
+            const file = fileInput ? fileInput.files[0] : null;
+            const url = urlInput ? urlInput.value : null;
+
+            if (file && file.size > 20 * 1024 * 1024) {
+                e.preventDefault();
+                alert('File terlalu besar! Maks 20 MB.');
+                return;
+            }
+            if (fileInput && urlInput && !file && !url) {
+                e.preventDefault();
+                alert('Silakan pilih file atau masukkan URL.');
             }
         });
     }

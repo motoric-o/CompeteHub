@@ -13,7 +13,7 @@ class Submission extends Model
 
     protected $fillable = [
         'competition_id', 'round_id', 'user_id', 'team_id',
-        'file_path', 'file_type', 'file_size',
+        'file_path', 'submission_url', 'file_type', 'file_size',
         'submitted_at', 'final_score', 'status',
         'revision_count', 'time_bonus',
     ];
@@ -35,6 +35,8 @@ class Submission extends Model
     {
         return ($this->final_score ?? 0) + ($this->time_bonus ?? 0);
     }
+
+
 
     public function competition(): BelongsTo
     {
@@ -64,6 +66,11 @@ class Submission extends Model
     public function quizAnswers(): HasMany
     {
         return $this->hasMany(QuizAnswer::class);
+    }
+
+    public function votes(): HasMany
+    {
+        return $this->hasMany(SubmissionVote::class);
     }
 
     public function getTimeTakenAttribute(): float

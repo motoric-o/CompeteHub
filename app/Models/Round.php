@@ -9,16 +9,23 @@ class Round extends Model
 {
     protected $fillable = [
         'competition_id',
+        'scoring_type_id',
         'name',
         'round_order',
         'start_date',
         'end_date',
-        'status'
+        'status',
+        'is_bracket'
     ];
 
     public function competition(): BelongsTo
     {
         return $this->belongsTo(Competition::class);
+    }
+
+    public function scoringType(): BelongsTo
+    {
+        return $this->belongsTo(ScoringType::class);
     }
 
     public function brackets()
@@ -36,11 +43,17 @@ class Round extends Model
         return $this->hasMany(QuizQuestion::class);
     }
 
+    public function scoringCriteria()
+    {
+        return $this->hasMany(ScoringCriterion::class);
+    }
+
     protected function casts(): array
     {
         return [
             'start_date' => 'datetime',
             'end_date'   => 'datetime',
+            'is_bracket' => 'boolean',
         ];
     }
 }

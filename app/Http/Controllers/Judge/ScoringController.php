@@ -41,6 +41,10 @@ class ScoringController extends Controller
             abort(403, 'You are not assigned to this competition.');
         }
 
+        if ($round->scoringType && $round->scoringType->name !== 'Judge Score') {
+            abort(403, 'This round is not scored by judges.');
+        }
+
         $submissions = Submission::where('competition_id', $competition->id)
             ->where('round_id', $round->id)
             ->with(['user', 'team', 'scores' => function ($q) use ($user) {
@@ -102,14 +106,18 @@ class ScoringController extends Controller
             abort(403, 'You are not assigned to this competition.');
         }
 
+        if ($submission->round->scoringType && $submission->round->scoringType->name !== 'Judge Score') {
+            abort(403, 'This round is not scored by judges.');
+        }
+
         // Get this judge's existing score for this submission
         $myScore = $submission->scores()->where('user_id', $user->id)->first();
 
         // Get all judge scores for this submission (for transparency)
         $allScores = $submission->scores()->with('judge')->get();
 
-        // Get competition scoring criteria and existing scores for criteria
-        $criterias = $competition->scoringCriteria()->get();
+        // Get round scoring criteria and existing scores for criteria
+        $criterias = $submission->round->scoringCriteria()->get();
         $myCriterionScores = $myScore ? $myScore->criterionScores->keyBy('criterion_id') : collect();
 
         $quizAnswers = collect();

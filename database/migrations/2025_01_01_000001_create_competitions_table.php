@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('name', 200);
             $table->text('description')->nullable();
             $table->longText('rules')->nullable();
+            $table->json('allowed_file_types')->nullable();
             $table->enum('type', ['individual', 'team']);
             $table->enum('competition_system', ['submission', 'quiz'])->default('submission');
             $table->foreignId('scoring_type_id')->constrained()->restrictOnDelete();
@@ -34,11 +35,13 @@ return new class extends Migration
         Schema::create('rounds', function (Blueprint $table) {
             $table->id();
             $table->foreignId('competition_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('scoring_type_id')->nullable()->constrained()->restrictOnDelete();
             $table->string('name', 100);
             $table->integer('round_order')->default(1);
             $table->timestamp('start_date')->nullable();
             $table->timestamp('end_date')->nullable();
             $table->enum('status', ['pending', 'active', 'finished'])->default('pending');
+            $table->boolean('is_bracket')->default(true);
             $table->timestamps();
         });
     }

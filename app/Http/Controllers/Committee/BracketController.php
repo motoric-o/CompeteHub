@@ -21,6 +21,11 @@ class BracketController extends Controller
 
     public function autoGenerate(Competition $competition, Round $round): RedirectResponse
     {
+        if (!$round->is_bracket) {
+            return redirect()->route('committee.rounds.show', [$competition, $round])
+                             ->with('error', 'Cannot perform bracket actions on a non-bracket round.');
+        }
+
         $this->bracketManager->autoGenerate($round);
 
         return redirect()->route('committee.rounds.show', [$competition, $round])
@@ -29,6 +34,11 @@ class BracketController extends Controller
 
     public function store(Request $request, Competition $competition, Round $round): RedirectResponse
     {
+        if (!$round->is_bracket) {
+            return redirect()->route('committee.rounds.show', [$competition, $round])
+                             ->with('error', 'Cannot perform bracket actions on a non-bracket round.');
+        }
+
         $validated = $request->validate([
             'participant_a' => 'required|integer',
             'participant_b' => 'nullable|integer',

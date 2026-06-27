@@ -106,6 +106,8 @@
                             </a>
                         </div>
                     @endif
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -343,6 +345,9 @@
                             Pendaftaran Anda sudah aman. Anda dapat mengunduh sertifikat partisipasi atau melihat daftar submisi tugas/lomba.
                         </p>
                         <div class="space-y-2">
+                            <a href="{{ route('competitions.show', $competition) }}" class="btn btn-primary w-full text-sm">
+                                ℹ️ Detail & Galeri Kompetisi
+                            </a>
                             <a href="{{ route('participant.submissions.index', $competition) }}" class="btn btn-secondary w-full text-sm">
                                 🚀 Lihat Submisi Lomba
                             </a>

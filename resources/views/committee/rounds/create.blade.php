@@ -30,6 +30,19 @@
                 @error('round_order') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
             </div>
 
+            <div class="form-group mb-4">
+                <label for="scoring_type_id" class="block text-sm font-medium text-gray-700 mb-1">Metode Penilaian</label>
+                <select name="scoring_type_id" id="scoring_type_id" class="form-input w-full" required>
+                    <option value="">-- Pilih Metode Penilaian --</option>
+                    @foreach($scoringTypes as $st)
+                        <option value="{{ $st->id }}" {{ old('scoring_type_id') == $st->id ? 'selected' : '' }}>
+                            {{ $st->name }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('scoring_type_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+            </div>
+
             <div class="grid grid-cols-2 gap-4 mb-4">
                 <div class="form-group">
                     <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Mulai</label>
@@ -43,7 +56,7 @@
                 </div>
             </div>
 
-            <div class="form-group mb-6">
+            <div class="form-group mb-4">
                 <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
                 <select name="status" id="status" class="form-input w-full" required>
                     <option value="pending" {{ old('status') == 'pending' ? 'selected' : '' }}>Pending</option>
@@ -51,6 +64,12 @@
                     <option value="finished" {{ old('status') == 'finished' ? 'selected' : '' }}>Finished</option>
                 </select>
                 @error('status') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+            </div>
+
+            <div class="form-group mb-6 flex items-center gap-2">
+                <input type="checkbox" name="is_bracket" id="is_bracket" value="1" {{ old('is_bracket', 1) ? 'checked' : '' }} class="rounded border-2 border-black text-primary focus:ring-0 w-5 h-5 cursor-pointer">
+                <label for="is_bracket" class="text-sm font-bold text-gray-900 cursor-pointer select-none">Menggunakan Bagan Tanding (Bracket)?</label>
+                @error('is_bracket') <span class="text-red-500 text-xs block mt-1">{{ $message }}</span> @enderror
             </div>
 
             <div class="flex justify-end gap-2">
